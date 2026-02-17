@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+    {% if id is defined %}
+        {% set action_url = path('truck',{'id': id}) %}
+    {% else %}
+        {% set action_url = path('truck') %}
+    {% endif %}
+{% block title %}{% if title is defined %}{{ title }}{% else %}{% trans %}truck_new{% endtrans %}{% endif %}{% endblock %}
+
+{% block body %}
+    <ul class="quick_links">
+        <li><a href="/company/{{ company.id }}/filials">{% trans %}filials{% endtrans %}</a></li>
+        <li><a href="/company/{{ company.id }}/drivers">{% trans %}drivers{% endtrans %}</a></li>
+        <li><a href="/company/{{ company.id }}/trucks">{% trans %}trucks{% endtrans %}</a></li>
+    </ul>
+    <h2 class="clear">{% if title is defined %}{{ title }}{% else %}{% trans %}truck_new{% endtrans %}{% endif %}</h2>
+    {{ form_start(form,{'action': action_url}) }}
+
+
+    {{ form_end(form) }}
+
+
+{% endblock %}

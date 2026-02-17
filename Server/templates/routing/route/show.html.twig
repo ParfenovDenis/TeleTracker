@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Route{% endblock %}
+
+{% block body %}
+    <h1>Route</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ route.id }}</td>
+            </tr>
+            <tr>
+                <th>DateTime</th>
+                <td>{{ route.dateTime ? route.dateTime|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('routing_route_index') }}">back to list</a>
+
+    <a href="{{ path('routing_route_edit', {'id': route.id}) }}">edit</a>
+
+    {{ include('routing/route/_delete_form.html.twig') }}
+{% endblock %}

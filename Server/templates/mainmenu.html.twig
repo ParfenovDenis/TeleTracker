@@ -1,0 +1,71 @@
+<li class="dropdown">
+    <a class="dropdown-toggle nav-link" id="navbarDropdown" role="button" href="/groups"
+      >
+        {% trans %}groups{% endtrans %}</a>
+    <ul class="dropdown-menu bg-dark" aria-labelledby="navbarDropdown">
+        {% for group in groups %}
+            <li>
+                <a class="nav-link dropdown-toggle dropdown" href="/group/{{ group.id }}">{{ group.title }}</a>
+                <ul class="dropdown-menu bg-dark">
+                    {% for company in group.companies %}
+                        <li>
+                            <a class="nav-link dropdown-toggle dropdown" href="/company/{{ company.id }}">
+                                {{ company.title }}
+                            </a>
+
+                            <ul class="dropdown-menu bg-dark">
+                                <li>
+                                    <a href="/company/{{ company.id }}/filials"
+                                       class="nav-link dropdown-header">{% trans %}filials{% endtrans %}</a>
+                                </li>
+                                <li class="dropdown-divider"></li>
+                                {% for filial in company.children %}
+                                    <li>
+                                        <a class="nav-link dropdown-toggle dropdown"
+                                           href="/company/{{ filial.id }}">{{ filial.title }}</a>
+                                        <ul class="dropdown-menu bg-dark">
+                                            <li>
+                                                <a href="/company/{{ filial.id }}/trucks"
+                                                   class="nav-link dropdown-toggle dropdown-header"
+                                                   aria-haspopup="true"
+                                                   aria-expanded="false">{% trans %}trucks{% endtrans %}</a>
+                                                <ul class="dropdown-menu bg-dark">
+                                                    <li><a href="/filial/{{ filial.id }}/truck/new"
+                                                           class="nav-link">{% trans %}truck_add{% endtrans %}</a>
+                                                    </li>
+
+
+                                                </ul>
+                                            </li>
+                                            <li><a href="/filial/{{ filial.id }}/drivers"
+                                                   class="nav-link dropdown-toggle dropdown-header"
+                                                   aria-haspopup="true"
+                                                   aria-expanded="false">{% trans %}drivers{% endtrans %}</a>
+                                                <ul class="dropdown-menu bg-dark">
+
+                                                    <li><a href="/filial/{{ filial.id }}/driver/new"
+                                                           class="nav-link">{% trans %}driver_add{% endtrans %}</a>
+                                                    </li>
+
+                                                </ul>
+
+                                            </li>
+
+                                        </ul>
+                                    </li>
+                                {% endfor %}
+                                <li class="dropdown-divider"></li>
+                                <li><a href="/company/{{ company.id }}/filial/new"
+                                       class="nav-link dropdown-header">{% trans %}filial_add{% endtrans %}</a></li>
+
+                            </ul>
+                        </li>
+                    {% endfor %}
+                    <li class="dropdown-divider"></li>
+                    <li><a class="nav-link dropdown-header" href="/company">{% trans %}company_add{% endtrans %}</a>
+                    </li>
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+</li>

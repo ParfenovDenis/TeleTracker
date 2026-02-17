@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+{% set subnav = 'nav/organization.html.twig' %}
+{% block title %}{% trans %}filial_list{% endtrans %}{% endblock %}
+
+{% block body %}
+    {% include "message/warning.html.twig" %}
+    <ul class="quick_links">
+        <li><a href="{% if company.groupCompanies %}/group/{{ company.groupCompanies.id }}/companies{% else %}/company/{{ company.parent.id }}/filials{% endif %}">{% trans %}companies{% endtrans %}</a></li>
+
+        <li>  <a href="/company/{{ company.id }}/filial/new">{% trans %}filial_add{% endtrans %}</a></li>
+    </ul>
+    <h2 class="clear">{% trans %}filial_list{% endtrans %} {{ company.title }}</h2>
+    <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+
+            <th>{% trans %}filial_title{% endtrans %}</th>
+            <th>{% trans %}drivers{% endtrans %}</th>
+            <th>{% trans %}driver_add{% endtrans %}</th>
+            <th>{% trans %}trucks{% endtrans %}</th>
+            <th>{% trans %}truck_add{% endtrans %}</th>
+            <th>{% trans %}delete{% endtrans %}</th>
+           <!-- <th></th>-->
+        </tr>
+        </thead>
+        <tbody>
+        {% for filial in filials %}
+            <tr>
+
+                <td class="td_filial_title"><a href="/company/{{ filial.id }}">{{ filial.title }}</a></td>
+
+                <td><a href="/company/{{ filial.id }}/drivers">{% trans %}drivers{% endtrans %}</a></td>
+                <td><a href="/company/{{ filial.id }}/driver/new">{% trans %}driver_add{% endtrans %}</a></td>
+                <td><a href="/company/{{ filial.id }}/trucks">{% trans %}trucks{% endtrans %}</a></td>
+                <td><a href="/company/{{ filial.id }}/truck/new">{% trans %}truck_add{% endtrans %}</a></td>
+                <td><a data-title="{{ filial.title }}" class="link-delete"
+                       href="/company/{{ filial.id }}/delete">{% trans %}delete{% endtrans %}</a></td>
+               <!-- <td><a class="delete_link" href="/filial/delete/{{ filial.id }}">{% trans %}delete{% endtrans %}</a></td>-->
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+    {% include "message/confirm.html.twig" %}
+{% endblock %}

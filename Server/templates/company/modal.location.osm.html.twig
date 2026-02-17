@@ -1,0 +1,272 @@
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('/css/leaflet.css') }}">
+    <link rel="stylesheet" href="/css/map.css?v=2">
+{% endblock %}
+<style>
+    /* Set the size of the div element that contains the map */
+    #map {
+        height: 550px; /* The height is 400 pixels */
+        width: 100%; /* The width is the width of the web page */
+    }
+
+    /* Always set the map height explicitly to define the size of the div
+ * element that contains the map. */
+
+
+    /* Optional: Makes the sample page fill the window. */
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    #description {
+        font-family: Roboto, serif;
+        font-size: 15px;
+        font-weight: 300;
+    }
+
+    #infowindow-content .clear {
+        font-weight: bold;
+    }
+
+    #infowindow-content {
+        display: none;
+    }
+
+    #map #infowindow-content {
+        display: inline;
+    }
+
+    .pac-card {
+        margin: 10px 10px 0 0;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        background-color: #fff;
+        font-family: Tahoma, serif;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 2;
+    }
+
+    #pac-container {
+        padding-bottom: 12px;
+        margin-right: 12px;
+        z-index: 1050;
+    }
+
+    .pac-container {
+        z-index: 1050;
+    }
+
+    .pac-controls {
+        display: inline-block;
+        padding: 5px 11px;
+    }
+
+    .pac-controls label {
+        font-family: Roboto, serif;
+        font-size: 13px;
+        font-weight: 300;
+    }
+
+    #pac-input {
+        background-color: #fff;
+        font-family: Roboto, serif;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 400px;
+    }
+
+    #pac-input:focus {
+        border-color: #4d90fe;
+    }
+
+    #title {
+        color: #fff;
+        background-color: #4d90fe;
+        font-size: 25px;
+        font-weight: 500;
+        padding: 6px 12px;
+        display: block;
+    }
+
+    #target {
+        width: 345px;
+    }
+
+    #map {
+        height: 550px;
+        padding: 0;
+    }
+
+    #map-container {
+        padding: 0;
+    }
+
+    .ui-autocomplete {
+        z-index: 1050;
+    }
+
+    #mapModal .modal-footer {
+        justify-content: space-between;
+    }
+</style>
+
+{% block javascripts %}
+    <script src="{{ asset('/js/leaflet.js') }}"></script>
+    <script>
+
+
+        let map, truck, path, marker, circle;
+        $(function () {
+            function moveableMarker(map, marker) {
+                function trackCursor(evt) {
+                    marker.setLatLng(evt.latlng)
+                }
+
+                marker.on("mousedown", () => {
+                    map.dragging.disable()
+                    map.on("mousemove", trackCursor)
+                })
+
+                marker.on("mouseup", () => {
+                    map.dragging.enable()
+                    map.off("mousemove", trackCursor)
+                })
+
+                return marker
+            }
+
+            function createCircle(latlng) {
+                circle = L.circle(latlng, {radius: 200, color: "#000000", interactive: true});
+                const moveable = moveableMarker(map, circle);
+                circle.addTo(map);
+                $("#radiusRange").on("change", function (e) {
+                    circle.setRadius(e.target.value);
+                });
+
+            }
+
+            /**
+             * 1. pac-input select
+             * 2. map click
+             */
+            function setCircle(latlng) {
+                if (circle)
+                    circle.setLatLng(latlng);
+                else
+                    createCircle(latlng);
+            }
+
+
+            map = L.map('map').setView([55.752572, 37.624130], 12);
+            map.on("click", (e) => {
+                setCircle(e.latlng);
+            });
+            let tiles = L.tileLayer('{{ url_tile_server }}', {
+                maxZoom: 19
+            }).addTo(map);
+
+            {% if location.lat > 0 and location.lng > 0 and location.radius > 0 %}
+            createCircle([{{  location.lat }},{{ location.lng }}]);
+            circle.setRadius({{ location.radius }});
+            {% else %}
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    map.setView([position.coords.latitude, position.coords.longitude], 15);
+                });
+            }
+            {% endif %}
+            $("#mapModal").on("shown.bs.modal", function () {
+                map.invalidateSize();
+            });
+            $("#pac-input").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "https://nominatim.openstreetmap.org/search",
+                        dataType: "json",
+                        data: {
+                            q: $("#pac-input").val(),
+                            format: "json"
+                        },
+                        success: function (data) {
+                            for (let p in data) {
+                                data[p]["id"] = data[p]["place_id"];
+                                data[p]["label"] = data[p]["display_name"];
+                                data[p]["value"] = data[p]["display_name"];
+                            }
+                            response(data);
+                        },
+                    })
+                },
+                minLength: 2,
+                select: function (event, ui) {
+                    map.setView([ui.item.lat, ui.item.lon], 12);
+                    setCircle([ui.item.lat, ui.item.lon]);
+
+                }
+            });
+            $("#button_confirm").on("click", () => {
+                $("#company_lat").val(circle.getLatLng().lat);
+                $("#company_lng").val(circle.getLatLng().lng);
+                $("#company_radius").val(circle.getRadius());
+            })
+        });
+    </script>
+{% endblock %}
+
+<div class="modal " id="mapModal" data-show="true" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"
+                    id="exampleModalLabel">{% trans %}company_please_select_location_and_radius{% endtrans %}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="map-container">
+                    <div id="map"></div>
+                    <div class="pac-card" id="pac-card">
+                        <div>
+                            <label id="title" for="pac-input">{% trans %}searcbox_title{% endtrans %}</label>
+
+                        </div>
+                        <br/>
+                        <div id="pac-container">
+                            <input
+                                    id="pac-input"
+                                    class="controls"
+                                    type="text"
+                                    placeholder="Введите адрес"
+                            />
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+                <div class="form-group">
+                    <label for="radiusRange">{{ 'radius'|trans }}</label>
+                    <input type="range" min="50" max="500" class="form-control-range" id="radiusRange">
+                </div>
+                <button type="button" id="button_confirm" data-dismiss="modal"
+                        class="btn btn-primary">{% trans %}button_confirm{% endtrans %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,261 @@
+{% set wide_template = 1 %}
+{% set datetimepicker_id = 'datetimepicker-track' %}
+{% set subnav = 'nav/js-datetimepicker.html.twig' %}
+{% set route = url('overview') %}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}  {% endblock %}
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('/css/leaflet.css') }}">
+        <link rel="stylesheet" href="/css/map.css?v=2">
+        <style>
+            .panel_map {
+                display: none;
+            }
+
+            .full-height {
+                margin-top: 55px;
+            }
+
+            .panel_map, #map {
+                width: 100%;
+                height: 100%;
+                position: absolute;
+            }
+
+            .panel_list {
+                width: 100%;
+                height: 100%;
+                opacity: 88%;
+                position: absolute;
+                background-color: white;
+            }
+
+            .panel_list table {
+                font-size: 12px;
+                font-family: Helvetica, Arial, serif;
+            }
+
+            .panel_list table td {
+                font-size: 14px;
+            }
+
+            .panel_list table img {
+                max-height: 20px;
+            }
+
+            #table-link {
+                background-color: white;
+                color: black;
+                padding: 4px 10px;
+                line-height: normal;
+                box-shadow: 3px 3px 6px 0 rgb(0 0 0);
+                border-radius: 1rem;
+                z-index: 2;
+            }
+
+            #table-link:hover {
+                text-decoration: none;
+                box-shadow: 3px 3px 5px 0 rgb(0 0 0 / 52%) inset;
+            }
+
+            #map-link {
+                font-weight: bold;
+            }
+        </style>
+    {% endblock %}
+
+        {% block javascripts %}
+            <script src="{{ asset('/js/leaflet.js') }}"></script>
+        {% endblock %}
+{% block body %}
+
+    <div class="full-height">
+        <div class="panel_map">
+            <div id="map"></div>
+            <div style="text-align: right;margin: 10px;position: absolute;right: 10px; z-index: 2">
+                <button id="table-link" type="button" class="btn btn-link" style="">X</button>
+            </div>
+        </div>
+        <div class="panel_list">
+            <div style="text-align: right; margin: 10px;">
+                <button id="map-link" type="button" class="btn btn-success">{% trans %}view_map{% endtrans %}</button>
+            </div>
+            <table class="table table-striped table-bordered">
+                <thead>
+                <tr>
+                    <th rowspan="2"></th>
+                    <th rowspan="2">{% trans %}truck_title{% endtrans %}</th>
+
+                    <th style="text-align: center;" colspan="3">{% trans %}current_state{% endtrans %}</th>
+                    <th style="text-align: center;" colspan="3">{% trans %}per_day{% endtrans %}</th>
+                    <th style="text-align: center;" colspan="2">{% trans %}parking{% endtrans %}</th>
+                    <th rowspan="2">{% trans %}penalty_points{% endtrans %}</th>
+
+                </tr>
+                <tr>
+                    <th><img src="/images/icons/is-traffic.png" alt="В движении?"
+                             title="{% trans %}truck_is_traffic_thead{% endtrans %}"/></th>
+                    <th><img src="/images/icons/fuel-tank.png" alt="Бак, л" title="{% trans %}fuel{% endtrans %}"/></th>
+                    <th>{% trans %}distance{% endtrans %}</th>
+
+                    <th> {% trans %}fuel_economy{% endtrans %}, {% trans %}tank2_liter{% endtrans %}</th>
+                    <th> {% trans %}distance{% endtrans %}</th>
+                    <th> {% trans %}fuel_economy{% endtrans %}, {% trans %}fuel_economy1{% endtrans %}</th>
+                    <th> {% trans %}parking_cnt{% endtrans %}</th>
+                    <th> {% trans %}parking_duration_total{% endtrans %}</th>
+                </tr>
+
+                </thead>
+                <tbody>
+                {% for state in states %}
+                    <tr>
+                        <td>
+                            <img src="/images/icons/{% if state.truck.icon %}{{ state.truck.icon }}{% else %}marker-truck-on-map.png{% endif %}"/>
+                        </td>
+                        <td><a href="/truck/history/{{ state.truck.id }}/{{ default_datetime|date("Y/m/d") }}"
+                               title="{% trans %}go_to_track{% endtrans %}"> {{ state.truck.title }}</a></td>
+                        <td id="traffic-{{ state.truck.id }}"><img
+                                    src="/images/icons/{{ state.TrafficState.status }}.png"
+                                    title="{{ state.TrafficState.DescriptionFormat|trans|format(state.TrafficState.Description) }}"
+                                    alt="{{ state.TrafficState.DescriptionFormat|trans|format(state.TrafficState.Description) }}"/>
+                        </td>
+                        <td id="fuel-{{ state.truck.id }}">{{ state.fuel }}</td>
+                        <td id="distance-{{ state.truck.id }}">{{ state.distance }}</td>
+                        <td id="FuelConsumptionTank-{{ state.truck.id }}">{{ state.FuelConsumptionTank }} {% if  state.AverageFuelConsumption is not null %} ({{ state.AverageFuelConsumption }}){% endif %}</td>
+                        <td id="DistancePerDay-{{ state.truck.id }}">{{ state.DistancePerDay }}</td>
+                        <td id="FuelEconomy-{{ state.truck.id }}">{{ state.FuelEconomy }}  {% if  state.AverageFuelEconomy is not null %}  ({{ state.AverageFuelEconomy }}) {% endif %}</td>
+                        <td id="ParkingQty-{{ state.truck.id }}">{{ state.ParkingQty }}</td>
+                        <td id="ParkingInterval-{{ state.truck.id }}">{{ state.ParkingDateInterval|date("%H:%I") }}</td>
+                        <td id="penalty-{{ state.truck.id }}">
+                            <a tabindex="0" class=" " role="button" data-toggle="popover" data-html="true"
+                               data-trigger="hover" href="#/penalty/{{ state.truck.id }}"
+                               data-title="{% trans %}penalty_total{% endtrans %}: {{ state.PenaltyTotal }}"
+                               data-content="<h6>{% trans %}penalty_acceleration{% endtrans %}: <span class='badge badge-pill badge-danger'>{{ state.penaltyLogs.acceleration.error|length }}</span><span class='badge badge-pill badge-warning'>{{ state.penaltyLogs.acceleration.warning|length }}</span><span class='badge badge-pill badge-secondary'>{{ state.penaltyLogs.acceleration.notice|length }}</span></h6><h6>{% trans %}penalty_braking{% endtrans %}: <span class='badge badge-pill badge-danger'>{{ state.penaltyLogs.braking.error|length }}</span><span class='badge badge-pill badge-warning'>{{ state.penaltyLogs.braking.warning|length }}</span><span class='badge badge-pill badge-secondary'>{{ state.penaltyLogs.braking.notice|length }}</span></h6>"> {{ state.penalty }}</a>
+                        </td>
+
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let trucks = [];
+
+        function initMap() {
+
+            map = L.map('map').setView([{{ center.lat }}, {{ center.lng }}], 13);
+            let tiles = L.tileLayer('{{ url_tile_server }}', {
+                maxZoom: 19
+            }).addTo(map);
+
+            {% set m = 0 %}
+            {% for state in states %}
+
+            {% set m = m + 1 %}
+            {% if state.gps is not null %}
+            let iconTruck{{ state.truck.id }} = L.icon({
+                iconUrl: '/images/icons/{% if state.truck.icon %}{{ state.truck.icon }}{% else %}marker-truck-on-map.png{% endif %}',
+                iconSize: [52, 46]
+
+            });
+            let truck{{ state.truck.id }} = L.marker([{{ state.gps.latitude }}, {{ state.gps.longitude }}], {icon: iconTruck{{ state.truck.id }}}).addTo(map);
+            trucks[{{ state.truck.id }}] = truck{{ state.truck.id }};
+            {% endif %}
+            {% endfor %}
+        }
+
+
+        //initMap();
+        var traffic = {};
+        {% for status,desc in traffic_states %}
+        traffic.{{ status }} = "{{ desc|trans }}";
+        {% endfor %}
+        let timeOutUpdate;
+        jQuery(function () {
+
+            jQuery("#map-link").on("click", function () {
+                jQuery(".panel_list").hide();
+                jQuery(".panel_map").show();
+                if (!map) {
+                    console.log("!map");
+                    initMap();
+                }
+
+
+            });
+            jQuery("#table-link").on("click", function () {
+                jQuery(".panel_map").hide();
+                jQuery(".panel_list").show();
+
+            });
+            {% if update == true %}
+            function Update() {
+                jQuery.ajax("/overview",
+                    {
+                        dataType: "json"
+                    }).done(function (data) {
+                    for (s in data.states) {
+                        if (data.states.hasOwnProperty(s)) {
+                            var state = data.states[s];
+                            jQuery("#traffic-" + state.truckId + " img").attr("src", "/images/icons/" + state.trafficImg + ".png")
+                                .attr("alt", traffic[state.trafficImg].replace("%s", state.trafficDesc))
+                                .attr("title", traffic[state.trafficImg].replace("%s", state.trafficDesc));
+                            jQuery("#fuel-" + state.truckId).html(state.Fuel);
+                            jQuery("#distance-" + state.truckId).html(state.Distance);
+                            jQuery("#FuelConsumptionTank-" + state.truckId).html(state.FuelConsumptionTank + (state.AverageFuelConsumption ? " (" + state.AverageFuelConsumption + ")" : ""));
+                            jQuery("#DistancePerDay-" + state.truckId).html(state.DistancePerDay);
+                            jQuery("#FuelEconomy-" + state.truckId).html(state.FuelEconomy + (state.AverageFuelEconomy ? " (" + state.AverageFuelEconomy + ")" : ""));
+                            jQuery("#ParkingQty-" + state.truckId).html(state.ParkingQty);
+                            jQuery("#ParkingInterval-" + state.truckId).html(state.ParkingInterval);
+
+                            var penaltyPopoverContent = "<h6>{% trans %}penalty_acceleration{% endtrans %}: " +
+                                `<span class='badge badge-pill badge-danger'>${state.PenaltyLogs.acceleration.error.length}</span>` +
+                                `<span class='badge badge-pill badge-warning'>${state.PenaltyLogs.acceleration.warning.length}</span>` +
+                                `<span class='badge badge-pill badge-secondary'>${state.PenaltyLogs.acceleration.notice.length}</span></h6>` +
+                                `<h6>{% trans %}penalty_braking{% endtrans %}: <span class='badge badge-pill badge-danger'>${state.PenaltyLogs.braking.error.length}</span>` +
+                                `<span class='badge badge-pill badge-warning'>${state.PenaltyLogs.braking.warning.length}</span>` +
+                                `<span class='badge badge-pill badge-secondary'>${state.PenaltyLogs.braking.notice.length}</span></h6>`;
+                            jQuery("#penalty-" + state.truckId + " a").attr("data-title", state.PenaltyTotal).attr("data-content", penaltyPopoverContent);
+                            if (map && state.latitude && state.longitude) {
+                                trucks[state.truckId].setLatLng({lat: state.latitude, lng: state.longitude})
+                            }
+
+                        }
+                    }
+                    clearTimeout(timeOutUpdate);
+                    timeOutUpdate = setTimeout(Update, 60000);
+                });
+            }
+
+            Update();
+            {% endif %}
+            jQuery('[data-toggle="popover"]').popover();
+
+
+            let datetimepicker = $('#{{ datetimepicker_id }}');
+            datetimepicker.data('date', new Date({{ default_datetime|date("Y,m-1,d") }}));
+            datetimepicker.removeAttr("disabled").datetimepicker({
+
+                value: "{{ default_datetime|date("d.m.y") }}",
+                format: "d.m.y",
+                timepicker: false,
+                onChangeDateTime: function (dp, $input) {
+                    var newDate = $input.datetimepicker('getValue');
+                    if ($('#{{ datetimepicker_id }}').data('date').valueOf() !== newDate.valueOf()) {
+                        window.location.href = "{{ route }}/" + newDate.getFullYear() + '/' + (newDate.getMonth() + 1) + '/' + newDate.getDate();
+                    }
+
+                }
+
+            });
+        });
+    </script>
+
+
+{% endblock %}

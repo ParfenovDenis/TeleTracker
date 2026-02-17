@@ -1,0 +1,17 @@
+{{ form_start(form,{'attr': {'style': 'clear: both; margin-top: 20px;'} }) }}
+    {{ form_widget(form) }}
+<button class="btn btn-primary">{{ 'Save'|trans }}</button>
+{% if waypoint is defined %}
+    <a class="btn btn-secondary"
+       href="{{ path('route_waypoints', {'route': waypoint.route.id}) }}">{{ 'close'|trans }}</a>
+{% endif %}
+{{ form_end(form) }}
+
+
+
+
+
+
+
+
+

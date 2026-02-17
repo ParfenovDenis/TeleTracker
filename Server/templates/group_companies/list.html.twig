@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+{% set subnav = 'nav/organization.html.twig' %}
+{% block title %}{% trans %}group_companies_list{% endtrans %}  {% endblock %}
+
+{% block body %}
+    {% include "message/warning.html.twig" %}
+
+    <a href="/group">{% trans %}group_companies_add{% endtrans %}</a>
+    <h2 class="clear">{% trans %}group_companies_list{% endtrans %} </h2>
+
+    <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+            <th>{% trans %}group_companies_title{% endtrans %}</th>
+            <th>{% trans %}companies{% endtrans %}</th>
+            <th>{% trans %}delete{% endtrans %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for group in group_companies %}
+            <tr>
+                <td><a href="/group/{{ group.id }}"> {{ group.title }}</a></td>
+                <td><a href="/group/{{ group.id }}/companies">{% trans %}companies{% endtrans %}</a></td>
+                <td><a data-title="{{ group.title }}" class="link-delete" href="/group/{{ group.id }}/delete">{% trans %}delete{% endtrans %}</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% include "message/confirm.html.twig" %}
+
+{% endblock %}

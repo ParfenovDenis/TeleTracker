@@ -1,0 +1,65 @@
+{% block javascripts %}
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+
+    <script type="text/javascript">
+        google.charts.load('current', {'packages': ['corechart']});
+
+        {% for chart in charts %}
+        {% if chart.messages|length > 0 %}
+        google.charts.setOnLoadCallback(draw{{ chart.name }});
+        {% endif %}
+        {% endfor %}
+
+        {% for chart in charts %}
+        {% if chart.messages|length > 0 %}
+        function draw{{ chart.name }}() {
+            var data = google.visualization.arrayToDataTable([
+                ['Время', '{{ chart.title }}'],
+                {% for message in chart.messages %}
+                {% if message.value > 0 %}
+                ['{{ message.datetime|date("H:i:s") }}',{{ message.value }}]{% if not loop.last %},{% endif %}
+
+                {% endif %}
+                {% endfor %}
+            ]);
+
+            var options = {
+                title: '{{ chart.title }}',
+                curveType: 'function',
+                legend: {position: 'bottom'}
+            };
+            var chart = new google.visualization.LineChart(document.getElementById('curve_{{ chart.name }}'));
+            chart.draw(data, options);
+        }
+        {% endif %}
+        {% endfor %}
+
+    </script>
+    <script>
+        jQuery(function () {
+            jQuery("#datepicker").datepicker({dateFormat: "yy/mm/dd"});
+            jQuery("#datepicker").on("change", function () {
+                var date = jQuery(this).val();
+                if (/^\d{4,4}\/\d{2,2}\/\d{2,2}/is.test(date))
+                    window.location.href = "/stat/"+ date;
+
+
+            });
+
+        });
+    </script>
+
+
+
+{% endblock %}
+
+{% block body %}
+    <input type="text" id="datepicker" size="30" autocomplete="off">
+
+    {% for chart in charts %}
+        <div id="curve_{{ chart.name }}" style="width: 900px; height: 500px"></div>
+    {% endfor %}
+
+{% endblock %}

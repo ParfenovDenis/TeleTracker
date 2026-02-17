@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+{% set subnav = 'nav/organization.html.twig' %}
+{% block title %}{% trans %}trucks{% endtrans %}{% endblock %}
+
+{% block body %}
+    {% include "message/warning.html.twig" %}
+    <ul class="quick_links">
+        <li><a href="/company/{{ company.parent.id }}/filials">{% trans %}filials{% endtrans %}</a></li>
+        <li><a href="/company/{{ company.id }}/drivers">{% trans %}drivers{% endtrans %}</a></li>
+        <li><a href="/company/{{ company.id }}/truck/new">{% trans %}truck_add{% endtrans %}</a></li>
+
+    </ul>
+
+
+
+    <h2 class="clear">{% trans %}truck_list{% endtrans %} {{ company.title }}</h2>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>{% trans %}truck_number_plate{% endtrans %}</th>
+            <th>{% trans %}truck_brand{% endtrans %}</th>
+            <th>{% trans %}truck_model{% endtrans %}</th>
+            <th>{% trans %}truck_tank{% endtrans %}</th>
+            <th>{% trans %}delete{% endtrans %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for truck in company.trucks %}
+            <tr>
+                <td><a href="/truck/{{ truck.id }}">{{ truck.numberPlate }}</a></td>
+                <td><a href="/truck/{{ truck.id }}">{{ truck.brand }}</a></td>
+                <td><a href="/truck/{{ truck.id }}">{{ truck.model }}</a></td>
+                <td><a href="/truck/{{ truck.id }}">{{ truck.fuelTank }}</a></td>
+                <td><a data-title="{{ truck.title }}" class="link-delete"
+                       href="/truck/{{ truck.id }}/delete">{% trans %}delete{% endtrans %}</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+    {% include "message/confirm.html.twig" %}
+{% endblock %}

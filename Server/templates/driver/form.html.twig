@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+{% block title %}{% if title is defined %}{{ title }}{% else %}{% trans %}driver_new{% endtrans %}{% endif %}{% endblock %}
+
+{% block body %}
+<ul class="quick_links">
+    <li><a href="/company/{{ company.id }}/filials">{% trans %}filials{% endtrans %}</a></li>
+    <li><a href="/company/{{ company.id }}/drivers">{% trans %}drivers{% endtrans %}</a></li>
+    <li><a href="/company/{{ company.id }}/trucks">{% trans %}trucks{% endtrans %}</a></li>
+</ul>
+
+
+
+    <h2 class="clear">{% if title is defined %}{{ title }}{% else %}{% trans %}driver_new{% endtrans %}{% endif %}</h2>
+
+
+        <div class="alert alert-error">
+            {{ form_errors(form) }}
+        </div>
+
+
+    {{ form_start(form) }}
+
+
+    {{ form_end(form) }}
+
+
+{% endblock %}

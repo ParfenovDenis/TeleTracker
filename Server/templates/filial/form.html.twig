@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+    {% if id is defined %}
+        {% set action_url = path('filial',{'id': id}) %}
+        {# set title =  #}
+    {% else %}
+        {% set action_url = path('filial') %}
+    {% endif %}
+
+{% block title %}{% if title is defined %}{{ title }}{% else %}{% trans %}filial_new{% endtrans %}{% endif %}{% endblock %}
+
+{% block body %}
+
+    <ul class="quick_links">
+        <li><a href="/company/{{ filial.company.id }}/filials">{% trans %}filials{% endtrans %}</a></li>
+        {% if filial.id %}
+            <li><a href="/filial/{{ filial.id }}/drivers">{% trans %}drivers{% endtrans %}</a></li>
+            <li><a href="/filial/{{ filial.id }}/driver/new">{% trans %}driver_add{% endtrans %}</a></li>
+            <li><a href="/filial/{{ filial.id }}/trucks">{% trans %}trucks{% endtrans %}</a></li>
+            <li><a href="/filial/{{ filial.id }}/truck/new">{% trans %}truck_add{% endtrans %}</a></li>
+
+        {% endif %}
+    </ul>
+    <h2 class="clear">{% if title is defined %}{{ title }}{% else %}{% trans %}filial_new{% endtrans %}{% endif %}</h2>
+    {{ form_start(form,{'action': action_url }) }}
+
+
+    {{ form_end(form) }}
+    <style>
+
+        #map {
+            height: 600px; /* The height is 400 pixels */
+            width: 100%; /* The width is the width of the web page */
+        }
+
+        #location {
+            position: absolute;
+            left: 20px;
+        }
+    </style>
+    <div class="modal fade" id="mapModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"
+                        id="exampleModalLabel">{% trans %}company_please_select_location_and_radius{% endtrans %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="map"></div>
+                </div>
+                <div class="modal-footer">
+                    <div id="location">lat: <span id="lat">{{ location.lat }}</span> lng: <span
+                                id="lng">{{ location.lng }}</span> radius: <span
+                                id="radius">{{ location.radius }}</span></div>
+                    <button type="button" id="button_apply"
+                            class="btn btn-primary">{% trans %}filial_apply{% endtrans %}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function initMap() {
+            var locationDefault = {lat: {{ location.lat }}, lng: {{ location.lng }}};
+            var map = new google.maps.Map(
+                document.getElementById('map'), {zoom: 17, center: locationDefault});
+            var radius = new google.maps.Circle({
+                strokeColor: '#5c5c5c',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#bebebe',
+                fillOpacity: 0.35,
+                map: map,
+                center: locationDefault,
+                radius: {{ location.radius }},
+                editable: true,
+                draggable: true
+            });
+            radius.addListener("center_changed", function () {
+                jQuery("#company_lat").val(radius.getCenter().lat());
+                jQuery("#company_lng").val(radius.getCenter().lng());
+
+            });
+            radius.addListener("radius_changed", function () {
+                jQuery("#company_radius").val(radius.getRadius());
+            });
+
+            map.addListener("click",
+                function (event) {
+                     radius.setCenter(event.latLng);
+                    jQuery("#company_lat").val(radius.getCenter().lat());
+                    jQuery("#company_lng").val(radius.getCenter().lng());
+                });
+        }
+
+        jQuery("#button_apply").on("click", function () {
+            jQuery("#filial_lat").val(jQuery("#lat").text());
+            jQuery("#filial_lng").val(jQuery("#lng").text());
+            jQuery("#filial_radius").val(jQuery("#radius").text());
+            jQuery("#mapModal").modal('hide');
+        });
+    </script>
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlikxtRCML6lY2jl8VwJyvQ2gj258uBns&callback=initMap">
+    </script>
+{% endblock %}

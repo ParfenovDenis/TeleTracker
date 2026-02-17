@@ -1,0 +1,38 @@
+{% if is_granted('ROLE_USER') %}
+    <nav class="navbar navbar-dark bg-dark  navbar-expand-lg mainmenu">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                {% include "mainmenu.html.twig" %}
+
+                {# <!--<li><a class="nav-link" href="/truck/history">{% trans %}track{% endtrans %}</a> </li>--> #}
+                {% if subnav is defined %}
+                {% include subnav %}
+                {% endif %}
+            </ul>
+
+                <a class="navbar-text" href="/logout">{% trans %}Logout{% endtrans %}</a>
+
+        </div>
+    </nav>
+{#
+<!--<script>
+    (function ($) {
+        $('.c a.dropdown-toggle').on('click', function (e) {
+
+            return true;
+            if (!$(this).next().hasClass('show')) {
+                $(this).parents('.dropdown-menu').first().find('.show').removeClass("show");
+            }
+            var $subMenu = $(this).next(".dropdown-menu");
+            $subMenu.toggleClass('show');
+
+            $(this).parents('li.nav-item.dropdown.show').on('hidden.bs.dropdown', function (e) {
+                $('.dropdown-submenu .show').removeClass("show");
+            });
+
+            return false;
+        });
+    })(jQuery)
+
+</script>-->  #}
+{% endif %}

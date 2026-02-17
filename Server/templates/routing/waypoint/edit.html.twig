@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'waypoint_edit'|trans }}{% endblock %}
+
+{% block body %}
+    <ul class="quick_links">
+        <li><a href="{{ path('route_waypoints',{route: waypoint.route.id} ) }}">{{ 'waypoint_list_at'|trans|format(waypoint.route.truck, waypoint.route.datetime|date('d.m.Y')) }}</a></li>
+    </ul>
+    <h2 class="clear">{{ 'waypoint_edit'|trans }}</h2>
+
+    {{ include('routing/waypoint/_form.html.twig', {'button_label': 'Update'}) }}
+    {{ include('logic/documents.modal.html.twig') }}
+    {%  include 'company/modal.location.html.twig' %}
+
+
+{% endblock %}

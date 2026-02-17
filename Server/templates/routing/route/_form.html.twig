@@ -1,0 +1,12 @@
+{% block javascripts %}
+    <script>
+
+        $('.js-datetimepicker').datetimepicker({value:  '{{ route.dateTime|date("d.m.Y H:i") }}', step: 10});
+    </script>
+{% endblock %}
+{{ form_start(form) }}
+    {{ form_widget(form) }}
+<button class="btn btn-primary">{{ 'Save'|trans }}</button>
+<a class="btn btn-secondary" href="{{ path('routing_route_index',{date: route.dateTime|date('Y-m-d')}) }}">{{ 'close'|trans }}</a>
+{{ form_end(form) }}
+

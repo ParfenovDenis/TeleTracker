@@ -1,0 +1,7 @@
+<script>
+    jQuery(function () {
+        jQuery(".link-delete").on("click",null, [], function(e) {
+            return confirm("{% trans %}confirm_delete{% endtrans %} \"" + jQuery(e.target).attr('data-title') + "\"?");
+        });
+    });
+</script>

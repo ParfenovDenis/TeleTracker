@@ -1,0 +1,555 @@
+{% set wide_template = 1 %}
+{% set datetimepicker_id = 'datetimepicker-track' %}
+{% set subnav = 'nav/track.html.twig' %}
+{% extends 'base.html.twig' %}
+{% set count_waypoints = waypoints|length %}
+{% block title %} {% trans %}track{% endtrans %} {% endblock %}
+    {% block stylesheets %}
+
+        <link rel="stylesheet" href="/css/map.css?v=2">
+        <style>
+
+
+            #position {
+                z-index: 1000;
+            {% if allowRefreshMap == true %} right: 0;
+            {% else %} left: 0;
+            {% endif %} height: 100%;
+
+            }
+
+
+            #canBusMessages td, #canBusMessages th {
+
+            {% if is_granted("ROLE_DEV") %} width: 8.3%;
+            {% else %} width: 10%;
+            {% endif %}
+            }
+
+
+        </style>
+    {% endblock %}
+
+
+{% block body %}
+    {% if waypoints %}
+        {% set averageFuelEconomy, cntFuelEconomy = 0, 0 %}
+        <script>
+
+            let waypoints = [
+                {% for waypoint in waypoints %}
+                {
+                    {% if waypoint.fuelEconomy > 0 and waypoint.version != '5' %}
+                    {% set averageFuelEconomy = averageFuelEconomy + waypoint.fuelEconomy %}
+                    {% set cntFuelEconomy = cntFuelEconomy + 1 %}
+                    {% endif %}
+                    lat: {{ waypoint.latitude }},
+                    lng: {{ waypoint.longitude }},
+                    messages: {
+                        "fuel": "{{ waypoint.fuel }}",
+                        "fuelEconomy": "{{ waypoint.fuelEconomy }}",
+                        "rpm": "{{ waypoint.rpm }}",
+                        "temp": "{{ waypoint.temp }}",
+                        "distance": "{{ waypoint.distance }}",
+                        "speed": "{{ waypoint.CANspeed }}"
+                        {% if is_granted("ROLE_DEV") %},
+                        {% if waypoint.devLog is defined %}
+                        "devLog": "{{ waypoint.devLog | raw }}",
+                        {% endif %}
+                        "brakePedal": "{{ waypoint.brakePedal }}",
+                        "gasPedal": "{{ waypoint.gasPedal }}",
+                        "weight": "{{ waypoint.weight }}",
+                        "satellites": "{{ waypoint.gpsSatellites }}/{{ waypoint.gnssSatellitesUsed }}",
+                        "cnr": "{{ waypoint.CN }}",
+                        "csq": "{{ waypoint.rssi }}, {{ waypoint.ber }}",
+                        "request": "{{ waypoint.requestId }}"
+                        {% endif %}
+                    },
+                    time: "{{ waypoint.GPSDateTime|date("H:i:s") }}"
+                } {% if not loop.last %},{% endif %}
+                {% endfor %}
+
+            ];
+
+            function insertPath(waypoints_traffic, speed) {
+                let color = '#FF0000';
+                if (speed <= 50 && speed >= 30)
+                    color = '#FFFF00';
+                if (speed > 50)
+                    color = '#008000';
+                let path = new google.maps.Polyline({
+                    path: waypoints_traffic,
+                    geodesic: true,
+                    strokeColor: color,
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2
+                });
+                path.setMap(map);
+            }
+
+            function updatePath(_Waypoints) {
+                let dt0 = new Date("{{ datetime|date("Y-m-d") }} " + _Waypoints[0].time);
+                let p = 0;
+                let speed = 0;
+                let cntSpeeds = 0;
+                let waypoints_traffic = [];
+                for (w in _Waypoints) {
+                    let dt1 = new Date("{{ datetime|date("Y-m-d") }} " + _Waypoints[w].time);
+                    let speedW = parseInt(_Waypoints[w].messages.speed, 10);
+                    let gasPedal = parseFloat(_Waypoints[w].messages.gasPedal);
+                    if (speedW > 0) {
+                        speed += speedW;
+                        cntSpeeds++;
+                    }
+                    if (speedW > 0 || gasPedal > 0)
+                        waypoints_traffic.push(_Waypoints[w]);
+                    if (dt1 - dt0 > 300000) {
+                        dt0 = dt1;
+                        p++;
+                        //speed = speed/cntSpeeds;
+                        //console.log("speed: " + speed);
+                        speed = parseInt(speed / cntSpeeds);
+                        //console.log(p + ":  " + speed);
+                        insertPath(waypoints_traffic, speed);
+                        speed = 0;
+                        cntSpeeds = 0;
+                        waypoints_traffic = [];
+                    }
+                }
+                if (waypoints_traffic.length > 0) {
+                    speed = parseInt(speed / cntSpeeds);
+                    insertPath(waypoints_traffic, speed);
+                }
+                speed = cntSpeeds = 0;
+                waypoints_traffic = [];
+            }
+
+            let map, truck, path;
+
+            function initMap() {
+                map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 10,
+                    center: {lat: {{ center.lat }}, lng: {{ center.lng }}},
+                    mapTypeId: 'hybrid'
+                    //disableDefaultUI: true
+                });
+
+                truck = new google.maps.Marker({
+                    position: {
+                        lat: {{ waypoints|last.latitude }},
+                        lng: {{ waypoints|last.longitude }}},
+                    map: map,
+                    icon: {% if current_truck is defined and (current_truck.icon|length > 0) %}"/images/icons/{{ current_truck.icon }}" {% else %}
+                    "http://tt.avt-daf.ru:88/images/marker-truck-on-map.png" {% endif %}
+
+                });
+
+
+                /*var lineSymbol = {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 5,
+                    strokeColor: '#393'
+                };*/
+
+                /*
+                                path = new google.maps.Polyline({
+                                    path: waypoints,
+
+                                    geodesic: true,
+                                    strokeColor: '#FF0000',
+                                    strokeOpacity: 1.0,
+                                    strokeWeight: 2
+                                });
+                                path.setMap(map);*/
+                let t1 = Date.now();
+                updatePath(waypoints);
+                t1 = Date.now() - t1;
+                //console.log("p = " + p);
+                //console.log(t1);
+
+                {% set zIndex = 0 %}
+                let zIndex = 0;
+                {# ======================================  СТОЯНКИ =================================================== #}
+                {% if parking_points %}
+                {% for parking in parking_points %}
+                {% set zIndex = zIndex + 1 %}
+                const marker{{ zIndex }} = new google.maps.Marker({
+                    position: {
+                        lat: {{ parking.latitude }},
+                        lng: {{ parking.longitude }}},
+                    map: map,
+                    zIndex: {{ zIndex }},
+                    label: {
+                        text: "{{ parking.duration|date("%H:%I") }}",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "9px"
+                    },
+                    title: "{{ 'map_parking'|trans | format(parking.datetime|date("H:i:s"),parking.duration|date("%H:%I")) }}"
+                });
+                const infoWindow{{ zIndex }} = new google.maps.InfoWindow(
+                    {
+                        content: "{{ 'map_parking'|trans | format(parking.datetime|date("H:i:s"),parking.duration|date("%H:%I")) }}"
+                    }
+                );
+                marker{{ zIndex }}.addListener("click", () => {
+                    infoWindow{{ zIndex }}.open(map, marker{{ zIndex }});
+                });
+                {% endfor %}
+                {% endif %}
+
+                {# ======================================  ЗАПРАВКИ =================================================== #}
+                {% if refueling_points %}
+                const image = '/images/icons/refueling-green.png';
+                {% for refueling in refueling_points %}
+                {% set zIndex = zIndex + 1 %}
+                const marker{{ zIndex }} = new google.maps.Marker({
+                    position: {
+                        lat: {{ refueling.latitude }},
+                        lng: {{ refueling.longitude }}},
+                    map: map,
+                    icon: image,
+                    zIndex: {{ zIndex }},
+                    title: "{{ refueling.datetime|date("H:i:s") }}\r\n{{ refueling.fueled }}%{% if current_truck is defined %}, {{ refueling.fueled * current_truck.fuelTank / 100 }} л{% endif %}"
+                });
+                const infoWindow{{ zIndex }} = new google.maps.InfoWindow(
+                    {
+                        content: "{{ 'map_tank_fueled'|trans | format(refueling.fueled * current_truck.fuelTank / 100, refueling.fueled, refueling.datetime|date("H:i:s")) }}"
+                    }
+                );
+                marker{{ zIndex }}.addListener("click", () => {
+                    infoWindow{{ zIndex }}.open(map, marker{{ zIndex }});
+                });
+                {% endfor %}
+                {% endif %}
+                {# ======================================= ТОЧКИ МАРШРУТА ============================================ #}
+
+                {% if truck_route %}
+                const markerWaypoint = "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png";
+                {% for waypoint in truck_route.waypoints %}
+                {% set zIndex = zIndex + 1 %}
+                const marker{{ zIndex }} = new google.maps.Marker({
+                    position: {
+                        lat: {{ waypoint.latitude }},
+                        lng: {{ waypoint.longitude }}},
+                    map: map,
+                    icon: markerWaypoint,
+                    zIndex: {{ zIndex }}
+                    //title: "{{ waypoint.title }}"
+                });
+                const infoWindow{{ zIndex }} = new google.maps.InfoWindow(
+                    {
+                        content: "<strong>{{ waypoint.title }}</strong>"
+                    }
+                );
+                marker{{ zIndex }}.addListener("click", () => {
+                    infoWindow{{ zIndex }}.open(map, marker{{ zIndex }});
+                });
+                {% endfor %}
+                {% endif %}
+
+            }
+
+            let timeOutUpdateMap;
+            zIndex = {{ zIndex }};
+            jQuery(function () {
+                jQuery("#position").draggable({
+                    axis: "x",
+                    containment: "parent",
+                    drag: function (event, ui) {
+                        var left = ui.position.left;
+                        var progressBarWidth = jQuery(ui.helper.parent().get(0)).width();
+                        var offset = left / (progressBarWidth - 10) * 100;
+
+                        var w = Math.ceil((waypoints.length - 1) * offset / 100);
+                        var progressBarPosition = jQuery("#progrees-bar-position");
+
+                        if (left > progressBarWidth / 2) {
+                            if (left > progressBarWidth - progressBarPosition.width() / 2)
+                                progressBarPosition.css("left", "-46px");
+                            else
+                                progressBarPosition.css("left", "-25px");
+                        } else {
+                            if (left < 25)
+                                progressBarPosition.css("left", "10px");
+                            else
+                                progressBarPosition.css("left", "-25px");
+                        }
+                        if (w < waypoints.length) {
+                            let waypoint = waypoints[w];
+                            progressBarPosition.html(waypoint.time);
+                            for (var messageID in waypoint.messages) {
+                                jQuery("#" + messageID).html(waypoint.messages[messageID]);
+                            }
+                            {% if current_truck is defined %}
+                            jQuery("#fuel2").html(waypoint.messages["fuel"] * {{ current_truck.fuelTank }} / 100);
+                            {% endif %}
+                            truck.setPosition({lat: waypoint.lat, lng: waypoint.lng});
+                        }
+
+                    }
+                });
+                {% if allowRefreshMap == true %}
+                updateMap();
+                {% endif %}
+            });
+            let logId = {{ waypoints|last.logId }};
+
+            {% if allowRefreshMap == true %}
+            function insertMarker(data, icon = null) {
+                zIndex++;
+                const date = new Date(data.datetime.date);
+                let content = "";
+                let label = null;
+                if ('duration' in data) {
+                    const duration = new Date();
+                    duration.setHours(data.duration.h, data.duration.i);
+                    content = "{{ 'map_parking'|trans }}".replace(/\%s/, new Intl.DateTimeFormat("ru-RU", {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    }).format(date)).replace(/\%s/, new Intl.DateTimeFormat("ru-RU", {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    }).format(duration));
+                    label = {
+                        text: new Intl.DateTimeFormat("ru-RU", {hour: "2-digit", minute: "2-digit"}).format(duration),
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "9px"
+                    };
+                }
+                if ('fueled' in data) {
+                    let fuelTank = {{ current_truck.fuelTank }};
+                    content = "{{ 'map_tank_fueled'|trans }}".replace(/\%s/, new Intl.NumberFormat().format(data.fueled * fuelTank / 100)).replace(/\%s/, new Intl.NumberFormat().format(data.fueled)).replace(/\%s/, new Intl.DateTimeFormat("ru-RU", {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    }).format(date)).replace("%%", "%");
+                }
+                const marker = new google.maps.Marker({
+                    position: {
+                        lat: parseFloat(data.latitude),
+                        lng: parseFloat(data.longitude)
+                    },
+                    map: map,
+                    zIndex: zIndex,
+                    title: content
+                });
+                if (label)
+                    marker.setLabel(label);
+                if (icon)
+                    marker.setIcon(icon);
+                const infoWindow = new google.maps.InfoWindow(
+                    {
+                        content: content
+                    }
+                );
+                marker.addListener("click", () => {
+                    infoWindow.open(map, marker);
+                });
+            }
+
+
+            function updateMap() {
+                jQuery.ajax("/account/history/last/" + logId,
+                    {
+                        dataType: "json"
+                    }).done(function (data) {
+                    const count_waypoints = waypoints.length;
+                    if (data.waypoints.length > 0) {
+                        //let p = path.getPath();
+                        let w = count_waypoints;
+                        for (i in data.waypoints) {
+                            /*var myLatLng = new google.maps.LatLng({
+                                lat: data.waypoints[i]['lat'],
+                                lng: data.waypoints[i]['lng']
+                            });
+                            p.insertAt(w++, myLatLng);*/
+                            w++;
+                            waypoints.push(data.waypoints[i]);
+                            logId = data.waypoints[i]['logId'];
+                        }
+                        updatePath(data.waypoints);
+                        //path.setMap(map);
+                        jQuery("#progrees-bar-position").html(waypoints[w - 1].time);
+                        truck.setPosition({lat: waypoints[w - 1].lat, lng: waypoints[w - 1].lng});
+                        for (var messageID in waypoints[w - 1].messages) {
+                            jQuery("#" + messageID).html(waypoints[w - 1].messages[messageID]);
+                        }
+                        jQuery(".progrees-bar .parking").each(function () {
+                            const pos = parseInt(jQuery(this).attr("data-position"), 10);
+                            //console.log(jQuery(this).css("left")  + "  -> " + pos + " / " + waypoints.length + " * 100 = " + (pos / waypoints.length * 100) + "%");
+                            jQuery(this).css("left", (pos / waypoints.length * 100) + "%");
+                        });
+                    }
+                    if (data.parking_points.length > 0) {
+                        for (i in data.parking_points) {
+                            // const myLatLng = new google.maps.LatLng({lat: data.parking_points[i]['lat'], lng: data.parking_points[i]['lng']});
+                            let parking_html = '<div class="parking" data-position="' + (data.parking_points[i].position + count_waypoints)
+                                + '" style="left: ' + ((data.parking_points[i].position + count_waypoints) / waypoints.length * 100) + '%;"></div>';
+                            jQuery(".progrees-bar .draggable-container").append(parking_html);
+                            insertMarker(data.parking_points[i]);
+                        }
+                    }
+                    if (data.refueling_points.length > 0) {
+                        for (i in data.refueling_points) {
+                            insertMarker(data.refueling_points[i], '/images/icons/refueling-green.png');
+                        }
+                    }
+                    //console.log(jQuery(".progrees-bar .draggable-container .parking").length);
+                });
+                clearTimeout(timeOutUpdateMap);
+                timeOutUpdateMap = setTimeout(updateMap, 60000);
+
+            }
+
+            {% endif %}
+        </script>
+        <script async defer
+                src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlikxtRCML6lY2jl8VwJyvQ2gj258uBns&callback=initMap&v=quarterly&v2={{ version }}">
+        </script>
+
+        {% if is_granted('ROLE_DEV') %}
+            <div class="developer_panel">
+                <div id="devLog"></div>
+
+            </div>
+        {% endif %}
+
+        <div id="map-container">
+            <div id="map"></div>
+            <div class="control-bar">
+                <div class="progrees-bar">
+                    <div class="draggable-container">
+                        {# ======================================  СТОЯНКИ PROGRESS-BAR =================================================== #}
+                        {% if parking_points %}
+                            {% for parking in parking_points %}
+                                <div class="parking" data-position="{{ parking.position }}"
+                                     style="left: {{ parking.position/count_waypoints * 100 }}%;"></div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <div id="position" class="ui-widget-content">
+                            <div id="progrees-bar-position"
+                                 style="left: {{ allowRefreshMap ?'-46px;':'10px;' }}">{{ current_waypoint.GPSDateTime|date("H:i:s") }}</div>
+                        </div>
+                    </div>
+                </div>
+                <table class="table" id="canBusMessages" border="1">
+                    <thead>
+                    <tr>
+
+                        {% if current_truck is defined %}
+                            <th colspan="2">{% trans %}tank2{% endtrans %}
+                            </th>
+                            <th rowspan="2">{% trans %}fuel_economy{% endtrans %} {{ thead.fuel_economy }}</th>
+                        {% else %}
+                            <th rowspan="2"> {{ thead.tank }}</th>
+                            <th rowspan="2"
+                                title="{% if cntFuelEconomy > 0 %}{{ averageFuelEconomy/cntFuelEconomy }}{% endif %}">{% trans %}fuel_economy{% endtrans %}
+                                , {{ thead.fuel_economy }}</th>
+                        {% endif %}
+                        <th rowspan="2"> {{ thead.distance }}</th>
+                        <th colspan="3">{% trans %}per_day{% endtrans %}</th>
+                        <th rowspan="2"><img src="/images/rpm.jpg"/> {{ thead.rpm }}</th>
+                        <th rowspan="2"><img src="/images/engineTemp.jpg"/> {% trans %} temperature {% endtrans %}</th>
+                        <th rowspan="2"><img src="/images/speedometer.jpg"/> {{ thead.speedometer }}</th>
+
+
+                        {% if is_granted("ROLE_DEV") %}
+                            <th rowspan="2"><img src="/images/gasPedal.jpg"/></th>
+                            <th rowspan="2"><img src="/images/brakePedal.jpg"/></th>
+                            <th rowspan="2"><img src="/images/weight.jpg"/></th>
+                            <th rowspan="2"><img src="/images/satellites.jpg"/></th>
+                            <th rowspan="2"><img src="/images/CNR.jpg"/></th>
+                            <th rowspan="2"><img src="/images/csq.jpg"/></th>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        {% if current_truck is defined %}
+                            <th> %</th>
+                            <th> {% trans %}tank2_liter{% endtrans %}</th>
+
+                            <th> {% trans %}fuel_economy{% endtrans %}, {% trans %}tank2_liter{% endtrans %}</th>
+                            <th> {{ thead.distance }}</th>
+                            <th> {% trans %}fuel_economy{% endtrans %}, {% trans %}fuel_economy1 {% endtrans %}</th>
+
+                        {% endif %}
+                    </tr>
+
+                    </thead>
+                    <tbody>
+                    <tr>
+                        {% if current_truck is defined %}
+                            <td id="fuel">{{ current_waypoint.fuel }}</td>
+                            <td id="fuel2">{{ current_truck.fuelTank * current_waypoint.fuel/100 }}</td>
+                            <td id="fuelEconomy">{{ current_waypoint.fuelEconomy }}</td>
+
+                        {% else %}
+                            <td id="fuel">{{ current_waypoint.fuel }}</td>
+                            <td id="fuelEconomy">{{ current_waypoint.fuelEconomy }}</td>
+                        {% endif %}
+
+                        <td id="distance">{{ current_waypoint.distance }}</td>
+                        {% set fueled = 0 %}
+                        {% if refueling_points|length > 0 %}
+                            {% for refueling in refueling_points %}
+                                {% set fueled = fueled + refueling.fueled %}
+                            {% endfor %}
+                        {% endif %}
+                        {% set fuel_consumption = current_truck.fuelTank * (start_fuel + fueled - current_fuel)/100 %}
+                        {% set distance_per_day =  waypoints|last.distance - start_distance %}
+                        <td id="fuel_per_day">{# {{ current_truck.fuelTank}} * ({{ start_fuel }} + {{ fueled }} - {{ waypoints|last.fuel }} ) / 100 = #}
+                            {% if fuel_consumption > 0 %}{{ fuel_consumption }}{% else %}0{% endif %}
+                            {% if cnt_fuel_economy > 0 %}({{ (total_fuel_economy/cnt_fuel_economy * cnt_fuel_economy/3600)|round(2) }}) {% endif %}</td>
+                        <td id="distance_per_day">{{ distance_per_day }}</td>
+                        <td id="fuelEconomy_per_day">{% if distance_per_day > 0 %}{{ (fuel_consumption / (distance_per_day)*100)|round(2) }}{% endif %}
+                            {% if cnt_fuel_economy > 0 and distance_per_day > 0 %}
+                                ({{ (total_fuel_economy/cnt_fuel_economy * cnt_fuel_economy/3600/(distance_per_day/100))|round(2) }})
+                            {% endif %}</td>
+                        <td id="rpm">{{ current_waypoint.rpm }}</td>
+                        <td id="temp">{{ current_waypoint.temp }}</td>
+                        <td id="speed">{{ current_waypoint.CANspeed }}</td>
+                        {% if is_granted("ROLE_DEV") %}
+                            <td id="gasPedal"></td>
+                            <td id="brakePedal"></td>
+                            <td id="weight"></td>
+                            <td id="satellites"></td>
+                            <td id="cnr"></td>
+                            <td id="csq"></td>
+                            <td id="request"></td>
+                        {% endif %}
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        {% if no_traffic_recorded_on_this_day is defined %}
+            <div class="alert alert-secondary" role="alert" style="margin-top: 87px">
+                {% trans %}no_traffic_recorded_on_this_day{% endtrans %}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <script type="text/javascript">
+        $(function () {
+            let datetimepicker = $('#{{ datetimepicker_id }}');
+            datetimepicker.data('date', new Date({{ datetime|date("Y,m-1,d") }}));
+            datetimepicker.removeAttr("disabled").datetimepicker({
+
+                value: "{{ datetime|date("d.m.y") }}",
+                format: "d.m.y",
+                timepicker:false,
+                onChangeDateTime:function(dp,$input){
+                    var newDate = $input.datetimepicker('getValue');
+                    if ($('#{{ datetimepicker_id }}').data('date').valueOf() !== newDate.valueOf()){
+                        {% if current_id is defined %}
+                        window.location.href = "{{ route }}{{ current_id }}/" + newDate.getFullYear() + '/' + (newDate.getMonth() + 1) + '/'+ newDate.getDate();
+                        {% endif %}
+                    }
+                }
+            });
+        });
+    </script>
+
+{% endblock %}

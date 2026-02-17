@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'waypoint_add'|trans }}{% endblock %}
+
+{% block body %}
+    <ul class="quick_links">
+        <li>
+            <a href="{{ path('route_waypoints',{route: waypoint.route.id} ) }}">{{ 'waypoint_list_at'|trans|format(waypoint.route.truck, waypoint.route.datetime|date('d.m.Y')) }}</a>
+        </li>
+    </ul>
+
+    <h1>{{ 'waypoint_add'|trans }}</h1>
+
+    {{ include('routing/waypoint/_form.html.twig') }}
+    {{ include('logic/documents.modal.html.twig') }}
+    {{  include 'company/modal.location.osm.html.twig' }}
+
+{% endblock %}

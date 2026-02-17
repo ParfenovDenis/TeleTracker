@@ -1,0 +1,161 @@
+{% extends 'base.max-width.html.twig' %}
+
+{% block title %} лог {% endblock %}
+
+{% block body %}
+
+    <style type="text/css">
+
+        table.table th, table.table td {
+            padding: 5px 2px;
+        }
+        .table-fixed tbody {
+            height: 500px;
+            overflow-y: auto;
+            width: 100%;
+        }
+        .table-fixed thead,
+        .table-fixed tbody,
+        .table-fixed tr,
+        .table-fixed td,
+        .table-fixed th {
+            display: block;
+
+        }
+        .table-fixed tr:after {
+            content: "";
+            display: block;
+            visibility: hidden;
+            clear: both;
+        }
+        .table-fixed tbody td,
+        .table-fixed thead > tr > th {
+            float: left;
+        }
+
+
+    </style>
+
+    <table class="table table-striped table-responsive " style="display: table">
+<colgroup>
+    <!--<col width="80">
+    <col width="70">
+    <col width="162">
+    <col width="96">
+    <col width="56">
+    <col width="127">
+    <col width="191">
+    <col width="132">
+    <col width="80">
+    <col width="84">
+    <col width="43">
+    <col width="64">
+    <col width="41">
+    <col width="79">
+    <col width="86">
+    <col width="54">
+    <col width="55">
+    <col width="116">
+    <col width="102">
+    <col width="117">
+    <col width="68">-->
+</colgroup>
+
+
+        <thead>
+
+        <tr style="position: fixed; width: 100%; background-color: white ; display: table">
+
+            <th>requestId</th>
+            <th>requestDateTime</th>
+            <th>logId</th>
+            <th>logMillis</th>
+            <th>GPSDateTime</th>
+            <th>latitude</th>
+            <th>longitude</th>
+            <th>altitude</th>
+            <th>GPSspeed</th>
+            <th>course</th>
+            <th>gpsSatellites</th>
+            <th>CN</th>
+            <th>GPSmillis</th>
+            <th>Бак, %</th>
+            <th>Расход, км/л</th>
+            <th>об/мин</th>
+            <th>t, <sup>o</sup>C</th>
+            <th>Пробег, м</th>
+            <th>Скорость, км/ч</th>
+            <th>Тормоз, %</th>
+            <th>Газ, %</th>
+            <th>Вес, кг</th>
+            <th>Rssi/Ber</th>
+            <th>modemMillis</th>
+            <th>MemoryFree</th>
+
+        </tr>
+
+        <tr style="visibility: hidden;">
+
+            <th>requestId</th>
+            <th>requestDateTime</th>
+            <th>logId</th>
+            <th>logMillis</th>
+            <th>GPSDateTime</th>
+            <th>latitude</th>
+            <th>longitude</th>
+            <th>altitude</th>
+            <th>GPSspeed</th>
+            <th>course</th>
+            <th>gpsSatellites</th>
+            <th>CN</th>
+            <th>GPSmillis</th>
+            <th>Бак, %</th>
+            <th>Расход, км/л</th>
+            <th>об/мин</th>
+            <th>t, <sup>o</sup>C</th>
+            <th>Пробег, м</th>
+            <th>Скорость, км/ч</th>
+            <th>Тормоз, %</th>
+            <th>Газ, %</th>
+            <th>Вес, кг</th>
+            <th>Rssi/Ber</th>
+            <th>modemMillis</th>
+            <th>MemoryFree</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for line in lines %}
+            <tr>
+
+                <td>{{ line.requestId }}</td>
+                <td>{{ line.requestDateTime }}</td>
+                <td>{{ line.logId }}</td>
+                <td>{{ line.logMillis }}</td>
+                <td>{{ line.GPSDateTime|date("Y-m-d H:i:s") }}</td>
+                <td>{{ line.latitude }}</td>
+                <td>{{ line.longitude }}</td>
+                <td>{{ line.altitude }}</td>
+                <td>{{ line.GPSspeed }}</td>
+                <td>{{ line.course }}</td>
+                <td>{{ line.gpsSatellites }} / {{ line.gnssSatellitesUsed }}  /{{ line.glonass }} </td>
+                <td>{{ line.CN }} </td>
+                <td>{{ line.GPSmillis }} </td>
+                <td>{{ line.fuel }}</td>
+                <td>{{ line.fuelEconomy }}</td>
+                <td>{{ line.rpm }}</td>
+                <td>{{ line.temp }}</td>
+                <td>{{ line.distance }}</td>
+                <td>{{ line.CANspeed }}</td>
+                <td>{{ line.brakePedal }}</td>
+                <td>{{ line.gasPedal }}</td>
+                <td>{{ line.weight }}</td>
+                <td>{{ line.rssi }} / {{ line.ber }}</td>
+                <td>{{ line.modemMillis }} </td>
+                <td>{{ line.MemoryFree }} </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+
+{% endblock %}

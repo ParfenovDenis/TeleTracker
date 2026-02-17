@@ -1,0 +1,164 @@
+{% extends 'base.html.twig' %}
+
+{% set year_id = form.route.children.dateTime.children.date.children.year.vars.id %}
+{% set month_id = form.route.children.dateTime.children.date.children.month.vars.id %}
+{% set day_id = form.route.children.dateTime.children.date.children.day.vars.id %}
+{% set hour_id = form.route.children.dateTime.children.time.children.hour.vars.id %}
+{% set minute_id = form.route.children.dateTime.children.time.children.minute.vars.id %}
+
+{% set truck_id = form.children.route.children.truck.vars.id %}
+
+{% block title %} {{ 'manage_routes'|trans }} {% endblock %}
+
+    {% block javascripts %}
+        <script src="/js/calendar.js?v=1"></script>
+        <script>
+            $(function () {
+                $(".large-calendar").Calendar({
+                    'target': $("#waypoint_route_dateTime"), 'callback': function (date, today) {
+                        $("#{{ year_id }}").val(date.getFullYear());
+                        $("#{{ month_id }}").val(date.getMonth() + 1);
+                        $("#{{ day_id }}").val(date.getDate());
+                        if (date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth() && date.getDate() === today.getDate()) {
+                            $("#{{ hour_id }}").val(today.getHours());
+                            $("#{{ minute_id }}").val(today.getMinutes());
+                        } else {
+                            $("#{{ hour_id }}").val(0);
+                            $("#{{ minute_id }}").val(0);
+                        }
+                        let url = '{{ path('get_waypoints_by_truck',{'truck':'truck','date':'date'}) }}';
+                        url = url.replace('truck', $("#{{ truck_id }}").val());
+                        let dateStr = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+                        url = url.replace('date', dateStr);
+                        $.getJSON(url, "", function (data) {
+                                let waypointsUl = $("#waypoints ul")
+                            waypointsUl.html("");
+                                if ('waypoints' in data) {
+                                    for (w in data.waypoints) {
+                                        waypointsUl.append('<li class="row"><a class="col-7">'
+                                            + data.waypoints[w].title + '</a> <a class="col text-right">'
+                                            + data.waypoints[w].totalInvoiceValue
+                                            + '</a><a class="col text-right"><button type="button" class="btn btn-danger"><i class="bi bi-x"></i></button></a> </li>');
+                                    }
+                                }
+                            }
+                        )
+                    }
+                });
+            }, false);
+
+        </script>
+    {% endblock %}
+
+{% block stylesheets %}
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="/css/calendar.css">
+    <style>
+
+        #waypoints ul {
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        #waypoints ul li {
+            position: relative;
+            list-style: none;
+            padding-left: 7px;
+        }
+
+        #waypoints ul li:before {
+            width: 5px;
+            background-color: #005600;
+            height: 24px;
+            display: inline-block;
+            content: "";
+            position: absolute;
+            top: -4px;
+            left: 5px;
+
+
+        }
+
+        #waypoints ul li:after {
+            background-color: #005600;
+            height: 15px;
+            display: inline-block;
+            border-radius: 10px;
+            width: 15px;
+            content: "";
+            position: absolute;
+            top: 5px;
+            left: 0;
+            border: 1px solid #011c01;
+            box-shadow: 1px 2px 5px 2px #999999;
+
+        }
+
+        #waypoints ul li:hover:after {
+            background-color: red;
+        }
+
+
+        #waypoints ul li:first-child:before {
+            display: none;
+        }
+
+
+        #waypoints ul li a {
+            padding-left: 20px;
+        }
+
+        #waypoints .btn-danger {
+            background-color: #B0413E;
+            padding: 0;
+            line-height: 0;
+            border-color: #954442;
+        }
+
+        .btn-add {
+            line-height: 0;
+            padding: 0;
+            border-radius: 28px;
+            border: 0;
+        }
+
+        .btn-add i.bi-plus-circle {
+            font-size: 50px;
+            line-height: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {{ form_start(form) }}
+
+    <div class="row">
+        <div class="col">
+            {{ form_row(form.route) }}
+            <div id="waypoints">
+                <ul>
+                    <li class="row"><a class="col-7">АВТо1</a> <a class="col text-right">32527.00</a><a
+                                class="col text-right">
+                            <button type="button" class="btn btn-danger"><i class="bi bi-x"></i></button>
+                        </a></li>
+                </ul>
+            </div>
+
+            <button type="button" data-toggle="modal" data-target="#WaypointModal" class="btn btn-primary btn-add"><i
+                        class="bi bi-plus-circle"></i>
+            </button>
+        </div>
+        <div class="col">
+            {{ include('routing/calendar.html.twig') }}
+        </div>
+    </div>
+
+    {{ include('routing/waypoint/_form.modal.html.twig') }}
+
+    {{ form_end(form) }}
+    {{ include('logic/documents.modal.html.twig') }}
+    {% include 'company/modal.location.html.twig' %}
+{% endblock %}

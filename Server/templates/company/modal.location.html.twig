@@ -1,0 +1,238 @@
+<style>
+    /* Set the size of the div element that contains the map */
+    #map {
+        height: 550px; /* The height is 400 pixels */
+        width: 100%; /* The width is the width of the web page */
+    }
+</style>
+
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+<style>
+    /* Always set the map height explicitly to define the size of the div
+     * element that contains the map. */
+
+
+    /* Optional: Makes the sample page fill the window. */
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    #description {
+        font-family: Roboto, serif;
+        font-size: 15px;
+        font-weight: 300;
+    }
+
+    #infowindow-content .clear {
+        font-weight: bold;
+    }
+
+    #infowindow-content {
+        display: none;
+    }
+
+    #map #infowindow-content {
+        display: inline;
+    }
+
+    .pac-card {
+        margin: 10px 10px 0 0;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        background-color: #fff;
+        font-family: Roboto, serif;
+    }
+
+    #pac-container {
+        padding-bottom: 12px;
+        margin-right: 12px;
+        z-index: 1050;
+    }
+
+    .pac-container {
+        z-index: 1050;
+    }
+
+    .pac-controls {
+        display: inline-block;
+        padding: 5px 11px;
+    }
+
+    .pac-controls label {
+        font-family: Roboto, serif;
+        font-size: 13px;
+        font-weight: 300;
+    }
+
+    #pac-input {
+        background-color: #fff;
+        font-family: 'Roboto', serif;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 400px;
+    }
+
+    #pac-input:focus {
+        border-color: #4d90fe;
+    }
+
+    #title {
+        color: #fff;
+        background-color: #4d90fe;
+        font-size: 25px;
+        font-weight: 500;
+        padding: 6px 12px;
+    }
+
+    #target {
+        width: 345px;
+    }
+</style>
+<script>
+
+
+    const companyLocation = {};
+
+    function initAutocomplete() {
+
+        companyLocation.map = new google.maps.Map(document.getElementById("map"), {
+            center: {lat: {{ location.lat }}, lng: {{ location.lng }}},
+            zoom: 17,
+            mapTypeId: "roadmap",
+        });
+        companyLocation.radius = new google.maps.Circle({
+            strokeColor: '#5c5c5c',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#bebebe',
+            fillOpacity: 0.35,
+            map: companyLocation.map,
+            center: {lat: {{ location.lat }}, lng: {{ location.lng }}},
+            radius: {{ location.radius }},
+            editable: true,
+            draggable: true
+        });
+        const input = document.getElementById("pac-input");
+        const card = document.getElementById("pac-card");
+        companyLocation.searchBox = new google.maps.places.SearchBox(input);
+        companyLocation.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(card);
+        companyLocation.map.addListener("bounds_changed", () => {
+            companyLocation.searchBox.setBounds(companyLocation.map.getBounds());
+        });
+        companyLocation.map.addListener("click",
+            function (event) {
+                companyLocation.radius.setCenter(event.latLng);
+            });
+        let markers = [];
+
+        companyLocation.searchBox.addListener("places_changed", (e) => {
+            const places = companyLocation.searchBox.getPlaces();
+            if (places.length === 0) {
+                return;
+            }
+            const bounds = new google.maps.LatLngBounds();
+            if (places.length === 1) {
+                //console.log(places[0].geometry.location);
+                companyLocation.radius.setCenter(places[0].geometry.location);
+                if (places[0].geometry.viewport)
+                    bounds.union(places[0].geometry.viewport);
+                else
+                    bounds.extend(places[0].geometry.location);
+            } else {
+                // Clear out the old markers.
+                markers.forEach((marker) => {
+                    marker.setMap(null);
+                });
+                markers = [];
+                // For each place, get the icon, name and location.
+                //console.log(bounds);
+                places.forEach((place) => {
+                    if (!place.geometry || !place.geometry.location) {
+                        console.log("Returned place contains no geometry");
+                        return;
+                    }
+                    const icon = {
+                        url: place.icon,
+                        size: new google.maps.Size(71, 71),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(17, 34),
+                        scaledSize: new google.maps.Size(25, 25),
+                    };
+                    // Create a marker for each place.
+                    markers.push(
+                        new google.maps.Marker({
+                            map,
+                            icon,
+                            title: place.name,
+                            position: place.geometry.location,
+                        })
+                    );
+
+                    if (place.geometry.viewport) {
+                        // Only geocodes have viewport.
+                        bounds.union(place.geometry.viewport);
+                    } else {
+                        bounds.extend(place.geometry.location);
+                    }
+                });
+            }
+            companyLocation.map.fitBounds(bounds);
+        });
+    }
+</script>
+
+
+<div class="modal fade" id="mapModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"
+                    id="exampleModalLabel">{% trans %}company_please_select_location_and_radius{% endtrans %}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="pac-card" id="pac-card">
+                    <div>
+                        <div id="title">{% trans %}searcbox_title{% endtrans %}</div>
+
+                    </div>
+                    <br/>
+                    <div id="pac-container">
+                        <input
+                                id="pac-input"
+                                class="controls"
+                                type="text"
+                                placeholder="Введите адрес"
+                        />
+                    </div>
+                </div>
+
+
+                <div id="map"></div>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" id="button_confirm" data-dismiss="modal"
+                        class="btn btn-primary">{% trans %}button_confirm{% endtrans %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYwBCZd8vWCPd8P8ivfqmvTkJokN3uNQA&callback=initAutocomplete&libraries=places&v=weekly"
+        async
+></script>

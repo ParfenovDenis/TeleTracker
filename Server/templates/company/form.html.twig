@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+
+
+    <ul class="quick_links">
+        <li><a href="/groups">{% trans %}groups{% endtrans %}</a></li>
+        {% if group_id %}
+            <li><a href="/group/{{ group_id }}/companies">{% trans %}companies{% endtrans %}</a></li>
+        {% else %}
+            <li><a href="/companies">{% trans %}companies{% endtrans %}</a></li>
+        {% endif %}
+        {% if company_id %}
+            <li><a href="/company/{{ company_id }}/filials">{% trans %}filials{% endtrans %}</a></li>
+            <li><a href="/company/{{ company_id }}/filial/new">{% trans %}filial_add{% endtrans %}</a></li>
+        {% endif %}
+
+    </ul>
+    <h2 class="clear">{{ title }}</h2>
+    {{ form_start(form) }}
+    {{ form_end(form) }}
+
+
+    {% include 'company/modal.location.osm.html.twig' %}
+
+
+
+{% endblock %}

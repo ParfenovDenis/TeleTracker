@@ -1,0 +1,89 @@
+{% set route = url('routing_route_index') %}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}{% trans %}routing_list{% endtrans %}{% endblock %}
+    {% block stylesheets %}
+        <style>
+            #datetimepicker_route {
+                font-weight: bold;
+                font-size: 16px;
+            }
+
+        </style>
+    {% endblock %}
+{% block body %}
+    <h2 class="row">{{ 'routing_list_at'|trans|format('') }}
+        <div class="input-group col">
+        <span class="input-group-text" id="basic-addon1"><svg width="20" height="20" aria-hidden="true"
+                                                              focusable="false" data-prefix="fas"
+                                                              data-icon="calendar-alt"
+                                                              class="svg-inline--fa fa-calendar-alt fa-w-14" role="img"
+                                                              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path
+                        fill="currentColor"
+                        d="M0 464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V192H0v272zm320-196c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40zm0 128c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40zM192 268c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40zm0 128c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40zM64 268c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12H76c-6.6 0-12-5.4-12-12v-40zm0 128c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12H76c-6.6 0-12-5.4-12-12v-40zM400 64h-48V16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v48H160V16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v48H48C21.5 64 0 85.5 0 112v48h448v-48c0-26.5-21.5-48-48-48z"></path></svg></span>
+            {% include 'nav/js-datetimepicker.html.twig' with {'datetimepicker_id': 'datetimepicker_route'} %}
+        </div>
+    </h2>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>{{ 'route'|trans }}</th>
+            <th>{{ 'waypoint_list'|trans }}</th>
+            <th>{{ 'waypoint_total'|trans }}</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        {% for route in routes %}
+            {% set total = 0 %}
+            <tr>
+                <td>
+                    <a href="{{ path('routing_route_edit', {'id': route.id}) }}">{{ '%s %s %s'| format (route.truck.brand,  route.truck.model, route.truck.numberPlate) }}</a>
+                </td>
+                <td>
+                    <a href="{{ path('route_waypoints',{'route': route.id}) }}">
+                        {% for waypoint in route.waypoints %}
+                            {{ waypoint.company.title }} {% if not loop.last %}->{% endif %}
+                            {% if waypoint.totalInvoiceValue is not null %}
+                                {% set total = total + waypoint.totalInvoiceValue %}
+                            {% endif %}
+                        {% endfor %}
+                    </a>
+                </td>
+                <td>
+                    {{ total }}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">{{ 'routing_no_routs'| trans | format(default_datetime|date("d.m.Y")) }} </td>
+
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('routing_route_new',{date: default_datetime|date('Y-m-d')}) }}">{% trans %}routing_create_new{% endtrans %}</a>
+
+    <script type="text/javascript">
+        $(function () {
+            let datetimepicker = $('#datetimepicker_route');
+            datetimepicker.data('date', new Date({{ default_datetime|date("Y,m-1,d") }}));
+            datetimepicker.removeAttr("disabled").datetimepicker({
+
+                value: "{{ default_datetime|date("d.m.y") }}",
+                format: "d.m.y",
+                timepicker: false,
+                onChangeDateTime: function (dp, $input) {
+                    var newDate = $input.datetimepicker('getValue');
+                    if ($('#datetimepicker_route').data('date').valueOf() !== newDate.valueOf()) {
+                        window.location.href = "{{ path('routing_route_index') }}/" + newDate.getFullYear() + '-' + (newDate.getMonth() + 1) + '-' + newDate.getDate();
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}
+
+

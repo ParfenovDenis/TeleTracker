@@ -1,0 +1,86 @@
+{% set wide_template = 1 %}
+{% extends 'base.html.twig' %}
+
+{% block title %} Penalty {% endblock %}
+
+{% block body %}
+    <h3>Acceleration</h3>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>millis</th>
+            <th>datetime</th>
+            <th>speed</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for p in penalty_logs.acceleration %}
+            <tr>
+                <td>{{ p.0.logMillis }}</td>
+                <td>{{ p.0.GPSDateTime }}</td>
+                <td>{{ p.0.CANspeed }}</td>
+            </tr>
+            <tr>
+                <td>{{ p.1.logMillis }}</td>
+                <td>{{ p.1.GPSDateTime }}</td>
+                <td>{{ p.1.CANspeed }}</td>
+            </tr>
+            <tr>
+                <td>{{ p.1.logMillis - p.0.logMillis }}</td>
+                <td></td>
+                <td>{{ p.1.CANspeed - p.0.CANspeed }}   ({{ (p.1.CANspeed - p.0.CANspeed) / (( p.1.logMillis - p.0.logMillis)  /1000) }})</td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <td>{{ max_acceleration_log.0.logMillis }} ({{ max_acceleration_log.0.logId }})</td>
+            <td>{{ max_acceleration_log.0.GPSDateTime }}</td>
+            <td>{{ max_acceleration_log.0.CANspeed }}</td>
+        </tr>
+        <tr>
+            <td>{{ max_acceleration_log.1.logMillis }} ({{ max_acceleration_log.1.logId }})</td>
+            <td>{{ max_acceleration_log.1.GPSDateTime }}</td>
+            <td>{{ max_acceleration_log.1.CANspeed }}</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h3>Braking</h3>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>millis</th>
+            <th>datetime</th>
+            <th>speed</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for p in penalty_logs.braking %}
+            <tr>
+                <td>{{ p.0.logMillis }}</td>
+                <td>{{ p.0.GPSDateTime }}</td>
+                <td>{{ p.0.CANspeed }}</td>
+            </tr>
+            <tr>
+                <td>{{ p.1.logMillis }}</td>
+                <td>{{ p.1.GPSDateTime }}</td>
+                <td>{{ p.1.CANspeed }}</td>
+            </tr>
+            <tr>
+                <td>{{ p.1.logMillis - p.0.logMillis }}</td>
+                <td></td>
+                <td>{{ p.0.CANspeed - p.1.CANspeed }}   ({{ (p.0.CANspeed - p.1.CANspeed) / (( p.1.logMillis - p.0.logMillis)  /1000) }})</td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <td>{{ max_braking_log.0.logMillis }}</td>
+            <td>{{ max_braking_log.0.GPSDateTime }}</td>
+            <td>{{ max_braking_log.0.CANspeed }}</td>
+        </tr>
+        <tr>
+            <td>{{ max_braking_log.1.logMillis }}</td>
+            <td>{{ max_braking_log.1.GPSDateTime }}</td>
+            <td>{{ max_braking_log.1.CANspeed }}</td>
+        </tr>
+        </tbody>
+    </table>
+{% endblock %}

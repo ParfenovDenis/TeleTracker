@@ -1,0 +1,25 @@
+{% extends 'base.max-width.html.twig' %}
+
+{% block title %} История по логам {% endblock %}
+
+{% block body %}
+    <style>
+        ul.dates {
+            display: block;
+            float: left;
+            width: 127px;
+
+        }
+
+    </style>
+
+    <ul class="dates">
+    {% for date in dates %}
+        <li><a href="/history-logs?date={{ date.datetime | date('Y-m-d') }}">{{ date.datetime | date('Y-m-d') }}</a></li>
+        {% if loop.index % 20 == 0 %}
+            </ul><ul class="dates">
+        {% endif %}
+    {% endfor %}
+    </ul>
+
+{% endblock %}

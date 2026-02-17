@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <ul class="quick_links">
+        <li><a href="/groups">{% trans %}groups{% endtrans %}</a></li>
+        {% if id %}
+            <li><a href="/group/{{ id }}/companies">{% trans %}companies{% endtrans %}</a></li>
+            <li><a href="/group/{{ id }}/company/new">{% trans %}company_add{% endtrans %}</a></li>
+        {% endif %}
+    </ul>
+    <h2 class="clear">{{ title }}</h2>
+    {{ form_start(form) }}
+    {{ form_end(form) }}
+
+
+
+{% endblock %}

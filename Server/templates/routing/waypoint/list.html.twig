@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+{% set title = 'waypoint_list_at'|trans|format(route.truck, route.datetime|date('d.m.Y')) %}
+{% block title %}{{ title }}{{ 'company_can_not_delete_trucks'|trans }}{% endblock %}
+
+{% block body %}
+    <ul class="quick_links">
+        <li>
+            <a href="{{ path('routing_route_index',{date: route.dateTime|date('Y-m-d')}) }}">{{ 'routing_list_at'|trans|format(route.dateTime|date('d.m.Y')) }}</a>
+        </li>
+    </ul>
+    <h2 class="clear">{{ title }}</h2>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>{{ 'waypoint_document_id'|trans }}</th>
+            <th>{{ 'waypoint_status'|trans }}</th>
+
+            <th>{{ 'waypoint_actions'|trans }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for waypoint in waypoints %}
+            <tr>
+                <td>{{ waypoint.documentId }}</td>
+                <td>{{ waypoint.status|trans|format(waypoint.dateTime|date('H:i') ) }}</td>
+                {# <td>{{ waypoint.dateTime ? waypoint.dateTime|date('H:i') : '' }}</td> #}
+                <td>
+                    <a href="{{ path('waypoint_edit', {'id': waypoint.id}) }}">{{ 'edit'|trans }}</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">{{ 'waypoint_no_found'|trans }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('waypoint_new',{ routeId: route.id}) }}">{{ 'waypoint_add'|trans }}</a>
+{% endblock %}

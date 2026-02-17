@@ -1,0 +1,184 @@
+{% extends 'base.html.twig' %}
+{% set subnav = 'nav/organization.html.twig' %}
+{% block title %}{% trans %}drivers{% endtrans %}{% endblock %}
+
+{% block body %}
+    {% include "message/warning.html.twig" %}
+    <ul class="quick_links">
+        <li><a href="{{ path('filials',{id: company.id}) }}">{% trans %}filials{% endtrans %}</a></li>
+        <li><a href="{{ path('trucks',{companyId: company.id }) }}">{% trans %}trucks{% endtrans %}</a></li>
+        <li><a href="{{ path('driver',{company:company.id,driver: 'new'}) }}">{% trans %}driver_add{% endtrans %}</a></li>
+    </ul>
+    <h2 class="clear">{% trans %}driver_list{% endtrans %} {% if company.drivers %}{{ company.title }}{% endif %}</h2>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>{% trans %}driver_fio{% endtrans %}</th>
+            <th>{% trans %}truck_title{% endtrans %}</th>
+            <th>{% trans %}driver_license_exp_date{% endtrans %}</th>
+            <th>{% trans %}driver_employment_date{% endtrans %}</th>
+            <th>{% trans %}driver_dismissal_date{% endtrans %}</th>
+            <th>{% trans %}delete{% endtrans %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for driver in drivers %}
+            {% set driver_link = path('driver',{company: company.id, driver: driver.id}) %}
+            <tr>
+                <td><a href="{{ driver_link }}">{{ driver.fio }}</a></td>
+
+                {% if driver.driverTrucks|last and driver.driverTrucks|last.dateTimeFrom <= cdate and (driver.driverTrucks|last.dateTimeTo is null or driver.driverTrucks|last.dateTimeTo >= cdate) %}
+                    {% set drivertruck =  driver.driverTrucks|last %}
+                {% else %}
+                    {% set drivertruck =  null %}
+                {% endif %}
+                <td>
+                    <a href="" data-toggle="modal"
+                       data-target="#truckModal"
+                       {% if drivertruck %}data-truck="{{ drivertruck.truck.id }}"
+                       data-datetimefrom="{{ drivertruck.dateTimeFrom|date("Y-m-d\\TH:i") }}"
+                            {% if drivertruck.dateTimeTo is not null %}
+                                data-datetimeto="{{ drivertruck.dateTimeTo|date("Y-m-d\\TH:i:s") }}"
+                            {% endif %}
+                            {% endif %}
+                       data-driver="{{ driver.id }}">{% if drivertruck %}
+                            {{ drivertruck.truck.brand }} {{ drivertruck.truck.model }} {{ drivertruck.truck.numberPlate }}{% else %}{% trans %}driver_truck_set{% endtrans %}{% endif %}</a>
+                </td>
+                <td><a href="{{ driver_link }}">{{ driver.DriverLicenseExpirationDate|date("d.m.Y") }}</a></td>
+                <td><a href="{{ driver_link }}">{{ driver.employmentDate|date("d.m.Y") }}</a></td>
+                <td>
+                    <a href="{{ driver_link }}">{% if driver.dismissalDate is null %}-{% else %}{{ driver.dismissalDate|date("d.m.Y") }}{% endif %}</a>
+                </td>
+                <td><a data-title="{{ driver.fio }}" class="link-delete"
+                       href="{{ path('driver_delete',{id: driver.id}) }}">{% trans %}delete{% endtrans %}</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+
+    <div class="modal fade" id="truckModal" tabindex="-1" role="dialog"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">{% trans %}driver_truck_set{% endtrans %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {{ form_start(form,{"attr": {"id": form.vars.id}}) }}
+                <div class="modal-body">
+                    {{ form_row(form.dateTimeFrom) }}
+                    {{ form_row(form.to) }}
+                    {{ form_row(form.dateTimeTo) }}
+                    {{ form_row(form.driver) }}
+                    {{ form_row(form.truck) }}
+                </div>
+                <div class="modal-footer">
+
+                    {{ form_widget(form.Save) }}
+                </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+        $(function () {
+            $("#{{ form.vars.id }}").on("submit", function () {
+                var fields = {};
+                var driver_truck_Save = $("#driver_truck_Save");
+                if ($("#driver_truck_Save img").length === 0)
+                    driver_truck_Save.append(" <img alt='ajax-loader' src=\"/images/ajax-loader-2.gif\">");
+                driver_truck_Save.attr("disabled", "disabled");
+                $("input[type=text],input[type=datetime-local],input[type=hidden],select,input[type=checkbox]:checked", this).each(function () {
+                    fields[$(this).attr("name")] = $(this).val();
+                });
+
+                $.post("/driver/truck/set", fields, function (data) {
+                    if (data.success === true) {
+                        $("#driver_truck_Save img").remove();
+                        driver_truck_Save.removeAttr("disabled");
+                        var truckModal = $("#truckModal");
+                        $(truckModal[0].link[0]).html($("#driver_truck_truck")[0].children[$("#{{ form.truck.vars.id }}")[0].selectedIndex].text);
+                        truckModal.modal('hide');
+                    } else {
+                        if ('confirm' in data)
+                        {
+                            bootbox.confirm({
+                                message: data.confirm.body,
+                                locale: "ru",
+                                title: data.confirm.title,
+                                buttons: {
+                                    cancel: {
+                                        label: '<i class="fa fa-times"></i> {% trans %}button_cancel{% endtrans %}'
+                                    },
+                                    confirm: {
+                                        label: '<i class="fa fa-check"></i> {% trans %}button_confirm{% endtrans %}'
+                                    }
+                                },
+                                callback: function (result) {
+                                  if (result) {
+                                      $("#{{ form.confirm.vars.id }}").val(1);
+                                      $("#{{ form.vars.id }}").submit();
+                                  }
+                                }
+                            });
+                        }
+                    }
+                }, "json");
+
+                return false;
+            });
+            $("#{{ form.to.vars.id }}").on("change", function () {
+                if ($("#{{ form.to.vars.id }}:checked").length > 0)
+                    $("#{{ form.dateTimeTo.vars.id }}").attr("required", "required").show();
+                else
+                    $("#{{ form.dateTimeTo.vars.id }}").removeAttr("required").hide();
+            });
+            /*$('#driver_truck_dateTimeFrom').removeAttr("disabled").datetimepicker({
+                locale: 'ru',
+                format: 'L'
+            });
+            $('#driver_truck_dateTimeTo').removeAttr("disabled").datetimepicker({
+                locale: 'ru',
+                format: 'L'
+            });*/
+
+            $('#truckModal').on('show.bs.modal', function (event) {
+                let link = $(event.relatedTarget);
+                let optionsDriver = $('#{{ form.driver.vars.id }}')[0].options;
+                let optionsTruck = $('#{{ form.truck.vars.id }}')[0].options;
+
+                for (let o = 0; o < optionsDriver.length;o++) {
+                   if (optionsDriver[o].value === String(link.data('driver'))) {
+                       $('#{{ form.driver.vars.id }}')[0].selectedIndex = o;
+                   }
+                }
+
+                for (let o = 0; o < optionsTruck.length;o++) {
+                    if (optionsTruck[o].value === String(link.data('truck'))) {
+                        $('#{{ form.truck.vars.id }}')[0].selectedIndex = o;
+                    }
+                }
+
+                 if (link.attr("data-datetimefrom"))
+                    $('#{{ form.dateTimeFrom.vars.id }}')[0].value = link.data('datetimefrom');
+                if (link.attr("data-datetimeto")) {
+                    $('#{{ form.to.vars.id }}')[0].checked = true;
+                    $("#{{ form.dateTimeTo.vars.id }}").attr("required", "required").show();
+                    $('#{{ form.dateTimeTo.vars.id }}')[0].value = link.data('datetimeto');
+                }
+                $(this)[0].link = link;
+
+
+            })
+
+        });
+    </script>
+
+    {% include "message/confirm.html.twig" %}
+
+{% endblock %}

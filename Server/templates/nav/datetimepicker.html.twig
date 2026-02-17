@@ -1,0 +1,27 @@
+<li class="nav-item" style="position: relative; z-index: 2000">
+    <div class="input-group  input-group-sm col-auto" style="padding-top: 4px;">
+        <input type="text" class="form-control datetimepicker-input"
+               id="datetimepicker5" disabled="disabled" style="    width: 68px;"
+               data-toggle="datetimepicker" autocomplete="off"
+               data-target="#datetimepicker5"/>
+    </div>
+</li>
+
+<script type="text/javascript">
+    $(function () {
+        $('#datetimepicker5').removeAttr("disabled").datetimepicker({
+            locale: 'ru',
+            format: 'DD.MM.YY',
+            defaultDate: "{{ default_datetime|date("Y/m/d") }}",
+        });
+
+        $('#datetimepicker5').on("change.datetimepicker", function (e) {
+            if (!e.oldDate)
+                window.location.href = "{{ route }}/" + e.date.format("YYYY/MM/DD");
+            //console.log(e.date.format("YYYY/MM/DD"));
+        });
+
+
+
+    });
+</script>

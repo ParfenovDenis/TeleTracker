@@ -1,0 +1,81 @@
+<h1>Request: {{ lines|first.requestId.id }} IMEI: {{ lines|first.requestId.imei }} FP: {{ lines|first.requestId.fp }} Date: {{ lines|first.requestId.datetime|date("Y-m-d H:i:s") }}</h1>
+
+<style type="text/css">
+    table {
+        font-size: 12.5px;
+        border: 1px solid gainsboro;
+    }
+    td {
+        padding: 1px;
+        margin: 0;
+        line-height: normal;
+        white-space: nowrap;
+        border: 1px solid gainsboro;
+        font-family: Tahoma, Helvetica, Arial;
+
+    }
+
+</style>
+
+<a href="{{ previous }}"><<</a>
+<a href="{{ next }}">>></a>
+<table class="table table-striped table-bordered">
+    <thead>
+    <tr>
+        <th>log_millis</th>
+        <th>fuel</th>
+        <th>fuelEconomy</th>
+        <th>rpm</th>
+        <th>temp</th>
+        <th>distance</th>
+        <th>CANSpeed</th>
+        <th>brakePedal</th>
+        <th>gasPedal</th>
+        <th>weight</th>
+        <th>modem_millis</th>
+        <th>rssi</th>
+        <th>ber</th>
+        <th>MemoryFree</th>
+        <th>gps_millis</th>
+        <th>datetimeGPS</th>
+        <th>coord</th>
+        <th>altitude</th>
+        <th>speed</th>
+        <th>course</th>
+        <th>Satellites</th>
+        <th>CN</th>
+    </tr>
+
+    </thead>
+    <tbody>
+{% for line in lines %}
+<tr>
+    <td>{{ line.millis }}</td>
+    <td>{{ line.message.fuel }}</td>
+    <td>{{ line.message.fuelEconomy }}</td>
+    <td>{{ line.message.rpm }}</td>
+    <td>{{ line.message.temp }}</td>
+    <td>{{ line.message.distance }}</td>
+    <td>{{ line.message.speed }}</td>
+    <td>{{ line.message.brakePedal }}</td>
+    <td>{{ line.message.gasPedal }}</td>
+    <td>{{ line.message.weight }}</td>
+    <td>{{ line.modem.millis }}</td>
+    <td>{{ line.modem.rssi }}</td>
+    <td>{{ line.modem.ber }}</td>
+    <td>{{ line.modem.MemoryFree }}</td>
+    <td>{{ line.gps.millis }}</td>
+    <td>{{ line.gps.datetime|date("Y-m-d H:i:s") }}</td>
+    <td>{{ line.gps.latitude }},{{  line.gps.longitude }}</td>
+    <td>{{ line.gps.altitude }}</td>
+    <td>{{ line.gps.speed }}</td>
+    <td>{{ line.gps.speed }}</td>
+    <td>{{ line.gps.course }}</td>
+    <td>{{ line.gps.gpsSatellites }}, {{ line.gps.gnssSatellitesUsed }}</td>
+    <td>{{ line.gps.CN }}</td>
+
+
+</tr>
+{% endfor %}
+    </tbody>
+</table>

@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+{% set subnav = 'nav/organization.html.twig' %}
+{% block title %}{% trans %}company_list{% endtrans %}  {% if group is defined %}{{ group.title }}{% endif %} {% endblock %}
+
+{% block body %}
+    {% include "message/warning.html.twig" %}
+    <ul class="quick_links">
+        <li><a href="/groups">{% trans %}groups{% endtrans %}</a></li>
+        <li><a href="/company">{% trans %}company_add{% endtrans %}</a></li>
+    </ul>
+    <h2 class="clear">{% trans %}company_list{% endtrans %} {% if group is defined %}{{ group.title }}{% endif %}</h2>
+
+    <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+            <th>{% trans %}company_title{% endtrans %}</th>
+            <th>{% trans %}company_inn{% endtrans %}</th>
+            <th>{% trans %}company_manager{% endtrans %}</th>
+            <th>{% trans %}filials{% endtrans %}</th>
+            <th>{% trans %}filial_add{% endtrans %}</th>
+            <th>{% trans %}delete{% endtrans %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for company in companies %}
+            <tr>
+                <td><a href="/company/{{ company.id }}"> {{ company.title }}</a></td>
+                <td><a href="/company/{{ company.id }}">{{ company.inn }}</a></td>
+                <td><a href="/company/{{ company.id }}">{{ company.manager }}</a></td>
+                <td><a href="/company/{{ company.id }}/filials">{% trans %}filials{% endtrans %}</a></td>
+                <td><a href="/company/{{ company.id }}/filial/new">{% trans %}filial_add{% endtrans %}</a></td>
+                <td><a data-title="{{ company.title }}" class="link-delete"
+                       href="/company/{{ company.id }}/delete">{% trans %}delete{% endtrans %}</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include "message/confirm.html.twig" %}
+{% endblock %}

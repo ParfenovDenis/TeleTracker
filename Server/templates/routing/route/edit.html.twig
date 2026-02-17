@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'route' | trans }}{% endblock %}
+{% block javascripts %}
+{% endblock %}
+{% block body %}
+    <ul class="quick_links">
+        <li><a href="{{ path('routing_route_index',{date: route.dateTime|date('Y-m-d')}) }}">{{ 'routing_list_at'|trans|format(route.dateTime|date('d.m.Y')) }}</a> </li>
+    </ul>
+    <h1>{{ 'route' | trans }}</h1>
+
+    {{ include('routing/route/_form.html.twig', {'button_label': 'Update'}) }}
+
+
+
+
+{% endblock %}
