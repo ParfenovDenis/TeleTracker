@@ -1,0 +1,181 @@
+date: Дата
+edit: редактировать
+track: трек
+Save: Сохранить
+Log_in: Вход
+You_are_logged_in_as: Вы вошли как
+Please_sign_in: Авторизация
+Password: Пароль
+Logout: Выход
+wrong_format_date: неправильный формат даты
+car_select: Выберите автомобиль
+tank: Бак, %
+tank2: Бак
+tank2_liter: л
+fuel_economy: Расход топлива
+fuel_economy1: л/100км
+fuel_economy2: л/час
+rpm: об/мин
+temperature: t&deg;
+distance: Пробег, км
+speedometer: Скорость, км/ч
+button_confirm: Подтвердить
+button_cancel: Отменить
+warning: Внимание
+companies: Компании
+company_title: Наименование компании
+company_official_name: Официальное название компании
+company_inn: ИНН
+company_manager: Генеральный директор
+company_address: Юридический адрес
+company_lat: Широта
+company_lng: Долгота
+company_please_select_location: Выберите местоположение на карте
+company_user: Пользователи
+company_add: Добавить компанию
+company_list: Список компаний
+company_new: Новая компания
+company_radius: Радиус на карте
+company_not_found: Компания не найдена
+company_can_not_delete: Нельзя удалить компанию %s. Имеются связанные с ней филиалы.
+company_can_not_delete_drivers: Нельзя удалить  %s. Имеются связанные водители.
+company_can_not_delete_trucks: Нельзя удалить  %s. Имеются связанные автомобили.
+company_delete_success: Компания %s удалена.
+company_please_select_location_and_radius: Установите местоположение компании на карте
+filials: Филиалы
+filial_new: Новый филиал
+filial_list: Список филиалов
+filial_title: Название филиала
+filial_add: Добавить филиал
+filial_address: Адрес филиала
+filial_company: Компания
+filial_apply: Применить
+filial_are_you_sure_delete: Вы действительно хотите удалить филиал
+truck_title: Автомобиль
+trucks: Автомобили
+truck_new: Новый автомобиль
+truck_new_success: Новый автомобиль добавлен
+truck_list: Список автомобилей
+truck_add: Добавить автомобиль
+truck_number_plate: гос. номер
+truck_brand: Марка
+truck_model: Модель
+truck_tank: Бак, л
+truck_vin: VIN
+truck_sts: Свидетельство о регистрации транспортного средства
+truck_pts: Паспорт транспортного средства
+truck_fuel_card: Топливная карта
+truck_date_in: Дата ввода в эксплуатацию
+truck_date_out: Дата вывода из эксплуатации
+truck_flow_rate: Норма расхода
+truck_filial: Филиал
+truck_company: Компания
+truck_not_found: Автомобиль не найден.
+truck_can_not_delete_has_driver: Нельзя удалить автомобиль. Имеются закрепленные водители.
+truck_can_not_delete_has_imei: Нельзя удалить автомобиль. Имеются закрепленные трекеры.
+truck_delete_success: Автомобиль %s удалён.
+truck_icon: Иконка
+drivers: Водители
+driver_add: Добавить водителя
+driver: Водитель
+driver_list: Список водителей
+driver_new: Новый водитель
+driver_lastname: Фамилия
+driver_fio: ФИО
+driver_firstname: Имя
+driver_middlename: Отчество
+driver_license: Водительское удостоверение
+driver_license_exp_date: Дата окончания ВУ
+driver_employment_date: Дата приёма на работу
+driver_dismissal_date: Дата увольнения
+driver_filial: Филиал
+driver_truck_set: Закрепить автомобиль
+driver_can_not_delete: Нельзя удалить водителя. Имеются закрепленные автомобили.
+driver_delete_success: Водитель %s удалён.
+driver_not_found: Водитель не найден.
+group_companies_title: Название группы компаний
+group_companies_list: Список групп
+group_companies_add: Добавить группу
+group_companies_new: Новая группа
+group_companies_can_not_delete_message: Нельзя удалить группу компаний %s. Имеются связанные с ней компании.
+group_companies: Группа компаний
+group_companies_no_found: Группа компаний не найдена
+confirm_delete: Удалить
+group_companies_delete_success_message: Группа компаний %s удалена.
+groups: Группы
+delete: Удалить
+date_time_from: С
+date_time_to: По
+user_title: Сотрудник
+save_button: Сохранить
+no_traffic_recorded_on_this_day: В этот день не зафиксировано движения транспорта
+error_set_truck: Не удалось закрепить автомобиль
+driver_truck_conflict_title: Подтвердите закрепление
+driver_truck_conflict_body: В выбранный период этот автомобиль закреплен за следующими водителями %1 Записать закрепление автомобиля %2 за водителем %3 в этот период (%4)?
+driver_truck_current_time: Настоящее время
+close: Закрыть
+searcbox_title: Поиск по адресу
+map_tank_fueled: Заправлено %s л (%s%%) в %s
+map_parking: Стоянка в %s\r\nПродолжительность %s
+truck_is_traffic_thead: Состояние движения
+fuel_remaining_in_the_tank_thead: в баке
+truck_is_traffic: В движении, скорость %d км/ч
+truck_is_parking: Стоит
+l: л
+go_to_track: Перейти к треку
+fuel_spent: израсх-но
+fuel: Топливо, л
+per_day: За день
+parking: Стоянки
+parking_cnt: кол-во
+parking_duration_total: время
+fueled_liter: Заправлено
+current_state: Текущее состояние
+penalty_points: Штрафные баллы
+traffic_status_move: В движении, %s км/ч
+traffic_status_stop: Стоянка
+penalty_acceleration: Ускорение
+penalty_braking: Торможение
+penalty_total: Всего нарушений
+overview: Обзор
+view_map: Посмотреть на карте
+routing_create_new: Создать новый маршрут
+routing_list: Список маршрутов
+routing_list_at: Список маршрутов на %s
+routing_no_routs: На %s нет маршрутов
+route: Маршрут
+logic_order: Заказ
+logic_sale: Продажа
+logic_date: Открыт
+logic_contragent_descr: Клиент
+logic_fio: Кто создал
+logic_total_cur: Сумма
+logic_status_descr: Статус
+logic_choose_document: Выберите документ из Лоджика
+waypoint_document_id: Заказ
+waypoint_total_invoice_value: Сумма заказа
+waypoint_company: Организация
+waypoint_edit: Редактировать точку маршрута
+waypoint_list_at: Точки маршрута %s на %s
+waypoint_list: точки маршрута
+waypoint_back_to_list: Назад к списку точек маршрута
+waypoint_status: Статус
+waypoint_datetime: Заказ выполнен в
+waypoint_actions: Действия
+waypoint_no_found: не заданы точки маршрута
+waypoint_add: Добавить точку маршрута
+waypoint_status_delivery: Доставка
+waypoint_status_shipment: Отгрузка
+waypoint_status_shipped: Отгружен в %s
+waypoint_total: Сумма, руб.
+manage_routes: Управление маршрутами
+weekday_0: Пн
+weekday_1: Вт
+weekday_2: Ср
+weekday_3: Чт
+weekday_4: Пт
+weekday_5: Сб
+weekday_6: Вс
+calendar_reset: Сброс
+radius: Радиус
+

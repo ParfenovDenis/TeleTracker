@@ -1,0 +1,2 @@
+length_driver_license: Номер водительского удостоверения должен содержать 10 символов
+employment_date_greater_than_dismissal_date: Дата увольнения не может быть ранее даты приёма на работу
